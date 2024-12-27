@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("feedbacks") // 指定数据库表名
+@TableName("feedback") // 指定数据库表名
 public class Feedback {
     @TableId(value = "id", type = IdType.AUTO) // 主键，自增
     private Long id;

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("satisfaction_ratings") // 指定数据库表名
+@TableName("satisfaction_rating") // 指定数据库表名
 public class SatisfactionRating {
 
     @TableId(value = "id", type = IdType.AUTO) // 主键，自增

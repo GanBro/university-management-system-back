@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("recommendation_ratings") // 指定数据库表名
+@TableName("recommendation_rating") // 指定数据库表名
 public class RecommendationRating {
     @TableId(value = "id", type = IdType.AUTO) // 主键，自增
     private Long id;

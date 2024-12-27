@@ -7,15 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("admin_log") // 指定数据库表名
-public class AdminLog {
-    @TableId(value = "id", type = IdType.AUTO) // 主键，自增
-    private Long id;
-
-    private Long adminId; // 外键，指向管理员
-    private String action; // 操作内容
-    private String actionTime; // 操作时间
+@Data
+@TableName("role")
+public class Role {
+    @TableId(value = "role_id", type = IdType.AUTO)
+    private Integer roleId;
+    private String roleName;
 }

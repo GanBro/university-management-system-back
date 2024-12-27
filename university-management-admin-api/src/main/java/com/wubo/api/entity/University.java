@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("universities") // 指定对应的数据库表名
+@TableName("university") // 指定对应的数据库表名
 public class University {
     @TableId(value = "id", type = IdType.AUTO) // 指定主键策略
     private Long id;

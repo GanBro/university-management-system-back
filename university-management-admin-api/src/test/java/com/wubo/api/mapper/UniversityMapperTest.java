@@ -17,7 +17,6 @@ class UniversityMapperTest {
     @Test
     void addUser() {
         User user = new User();
-        user.setRole("USER");
         user.setUsername("ganbro");
         user.setPassword("1234567");
         user.setEmail("2551921037@qq.com");
@@ -29,7 +28,7 @@ class UniversityMapperTest {
     void getUser() {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", "ganbro");
-        queryWrapper.eq("password", "123456");
+        queryWrapper.eq("password", "1234567");
         User user = userMapper.selectOne(queryWrapper);
         System.out.println(user);
     }
