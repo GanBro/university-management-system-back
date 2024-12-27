@@ -25,4 +25,6 @@ public class User {
     private String token;
     @TableField(exist = false)
     private List<Role> roles;
+    @TableField(exist = false)
+    private List<String> roleNames; // 给前端发送
 }
