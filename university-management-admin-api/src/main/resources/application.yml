@@ -11,3 +11,5 @@ spring:
     user:
       name: admin
       password: admin123
+mybatis-plus:
+  type-aliases-package: com.wubo.api.entity

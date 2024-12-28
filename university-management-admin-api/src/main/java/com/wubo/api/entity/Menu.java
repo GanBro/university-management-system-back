@@ -1,9 +1,11 @@
 package com.wubo.api.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.wubo.api.handler.MetaTypeHandler;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,9 +32,10 @@ public class Menu {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String path; // 路由地址
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer parentId; // 父ID (默认为0)
+    @TableField(typeHandler = MetaTypeHandler.class)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Meta meta;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Menu> children;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Integer parentId; // 父ID (默认为0)
 }
