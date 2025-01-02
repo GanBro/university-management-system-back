@@ -1,4 +1,4 @@
-package com.wubo.api.controller.api;
+package com.wubo.api.controller;
 import com.wubo.api.dto.Result;
 import com.wubo.api.entity.Menu;
 import com.wubo.api.entity.User;

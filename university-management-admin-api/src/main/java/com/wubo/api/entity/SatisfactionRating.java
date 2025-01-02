@@ -15,10 +15,10 @@ import lombok.NoArgsConstructor;
 public class SatisfactionRating {
 
     @TableId(value = "id", type = IdType.AUTO) // 主键，自增
-    private Long id;
+    private Integer id;
 
     @TableField("university_id") // 外键字段
-    private Long universityId;
+    private Integer universityId;
 
     @TableField("category") // 评分类别
     private String category;

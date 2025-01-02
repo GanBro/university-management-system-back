@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @TableName("admin_log") // 指定数据库表名
 public class AdminLog {
     @TableId(value = "id", type = IdType.AUTO) // 主键，自增
-    private Long id;
+    private Integer id;
 
-    private Long adminId; // 外键，指向管理员
+    private Integer adminId; // 外键，指向管理员
     private String action; // 操作内容
     private String actionTime; // 操作时间
 }

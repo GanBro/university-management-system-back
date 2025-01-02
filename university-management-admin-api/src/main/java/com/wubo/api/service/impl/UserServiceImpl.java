@@ -12,7 +12,6 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,16 +26,23 @@ public class UserServiceImpl implements UserService {
     private RoleMapper roleMapper;
 
     /**
+     * 用户登录
      *
      * @param user 用户信息
-     * @return
+     * @return 登录成功的用户信息
      */
     @Override
     public User login(User user) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", user.getUsername());
         queryWrapper.eq("password", user.getPassword());
-        return userMapper.selectOne(queryWrapper);
+        User existingUser = userMapper.selectOne(queryWrapper);
+        if (existingUser != null) {
+            // 更新 last_login 字段为当前时间
+            existingUser.setLastLogin(new java.sql.Timestamp(System.currentTimeMillis()));
+            userMapper.updateById(existingUser);
+        }
+        return existingUser;
     }
 
     @Override
@@ -53,7 +59,7 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectOne(queryWrapper);
         // 通过用户id查询当前用户对应的角色列表
         QueryWrapper<UserRole> query = new QueryWrapper<>();
-        queryWrapper.eq("user_id", user.getUserId());
+        query.eq("user_id", user.getUserId());
         List<UserRole> userRoles = userRoleMapper.selectList(query);
         List<Integer> roleIds = userRoles.stream().map(UserRole::getRoleId).collect(Collectors.toList());
         List<Role> roles = roleMapper.selectByIds(roleIds);
@@ -62,6 +68,4 @@ public class UserServiceImpl implements UserService {
         user.setRoleNames(roleNames);
         return user;
     }
-
-
 }

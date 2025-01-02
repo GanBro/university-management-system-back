@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @TableName("university_feature") // 指定数据库表名
 public class UniversityFeature {
     @TableId(value = "id", type = IdType.AUTO) // 主键，自增
-    private Long id;
+    private Integer id;
 
-    private Long universityId; // 外键，指向高校表
+    private Integer universityId; // 外键，指向高校表
     private String featureName; // 特色名称
 }

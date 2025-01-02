@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @TableName("university") // 指定对应的数据库表名
 public class University {
     @TableId(value = "id", type = IdType.AUTO) // 指定主键策略
-    private Long id;
+    private Integer id;
 
     private String name;
     private String province;

@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Data
@@ -16,13 +17,14 @@ import java.util.List;
 @TableName("user") // 对应数据库表名
 public class User {
     @TableId(value = "user_id", type = IdType.AUTO) // 主键，自增
-    private Long userId;
+    private Integer userId;
 
     private String username;
     private String password;
     private String email;
     private String avatar;
     private String token;
+    private Timestamp LastLogin;
     @TableField(exist = false)
     private List<Role> roles;
     @TableField(exist = false)
