@@ -45,12 +45,6 @@ public class UserServiceImpl implements UserService {
         return existingUser;
     }
 
-    @Override
-    public User findByUsername(String username) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-        return userMapper.selectOne(queryWrapper);
-    }
 
     @Override
     public User getUserByToken(String token) {

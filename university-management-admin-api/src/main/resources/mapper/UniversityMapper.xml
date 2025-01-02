@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wubo.api.mapper.UniversityMapper">
+
+    <!-- 查询高校数量增长趋势 -->
+    <select id="selectUniversityGrowthTrend" resultType="map">
+        SELECT YEAR(created_at) AS year, COUNT(*) AS university_count
+        FROM university
+        GROUP BY YEAR(created_at)
+        ORDER BY year ASC
+    </select>
+
+    <select id="selectUniversityDistribution" resultType="map">
+        SELECT province AS province, COUNT(*) AS count
+        FROM university
+        GROUP BY province
+    </select>
+</mapper>

@@ -11,6 +11,10 @@ import java.util.Map;
 @Mapper
 public interface UniversityMapper extends BaseMapper<University> {
 
-    @Select("SELECT province, COUNT(*) AS count FROM university GROUP BY province")
+//    @Select("SELECT province, COUNT(*) AS count FROM university GROUP BY province")
     List<Map<String, Object>> selectUniversityDistribution();
+
+    List<Map<String, Object>> selectUniversityGrowthTrend();
+
+
 }

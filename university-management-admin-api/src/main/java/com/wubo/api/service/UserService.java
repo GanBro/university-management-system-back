@@ -15,7 +15,7 @@ public interface UserService {
      * @param username 用户名
      * @return 用户信息
      */
-    User findByUsername(String username);
+//    User findByUsername(String username);
 
     User getUserByToken(String token);
 

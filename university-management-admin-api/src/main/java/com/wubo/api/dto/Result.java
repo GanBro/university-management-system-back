@@ -38,4 +38,9 @@ public class Result<T> {
     public static <T> Result<T> success() {
         return new Result<>(SUCCESS_CODE, SUCCESS_MESSAGE, null);
     }
+
+    // 静态方法 - 默认失败，带错误信息
+    public static <T> Result<T> error(String message) {
+        return new Result<>(500, message, null);
+    }
 }
