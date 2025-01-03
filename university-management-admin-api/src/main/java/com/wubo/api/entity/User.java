@@ -1,3 +1,4 @@
+// src/main/java/com/wubo/api/entity/User.java
 package com.wubo.api.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -14,7 +15,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("user") // 对应数据库表名
+@TableName("user")
 public class User {
     @TableId(value = "user_id", type = IdType.AUTO) // 主键，自增
     private Integer userId;
@@ -24,7 +25,7 @@ public class User {
     private String email;
     private String avatar;
     private String token;
-    private Timestamp LastLogin;
+    private Timestamp lastLogin;
     @TableField(exist = false)
     private List<Role> roles;
     @TableField(exist = false)

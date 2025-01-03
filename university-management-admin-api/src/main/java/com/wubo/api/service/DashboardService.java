@@ -4,8 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface DashboardService {
+    // 获取仪表盘统计信息
     Map<String, Object> getStats();
 
-    // 新增方法：获取高校增长趋势
+    // 获取高校增长趋势
     List<Map<String, Object>> getUniversityGrowthTrend();
 }
