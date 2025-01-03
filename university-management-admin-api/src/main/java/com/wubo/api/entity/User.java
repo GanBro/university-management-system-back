@@ -26,6 +26,8 @@ public class User {
     private String avatar;
     private String token;
     private Timestamp lastLogin;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
     @TableField(exist = false)
     private List<Role> roles;
     @TableField(exist = false)

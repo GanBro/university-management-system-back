@@ -61,4 +61,20 @@ public class UserController {
         // 前端清除 token 即可，后端可以选择记录 token 无效
         return Result.success("成功退出登录", null);
     }
+
+    @Operation(summary = "用户注册接口", description = "通过提交用户名、密码等信息进行注册")
+    @PostMapping("/register")
+    public Result<?> register(@RequestBody User user) {
+        try {
+            boolean isRegistered = userService.register(user);
+            if (isRegistered) {
+                return Result.success("注册成功");
+            } else {
+                return Result.error(400, "用户名已存在");
+            }
+        } catch (Exception e) {
+            return Result.error(500, "注册失败: " + e.getMessage());
+        }
+    }
+
 }

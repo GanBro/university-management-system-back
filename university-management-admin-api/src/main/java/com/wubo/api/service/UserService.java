@@ -10,13 +10,9 @@ public interface UserService {
      */
     User login(User user);
 
-    /**
-     * 根据用户名查询用户
-     * @param username 用户名
-     * @return 用户信息
-     */
-//    User findByUsername(String username);
-
     User getUserByToken(String token);
+
+    // 注册方法
+    boolean register(User user);
 
 }
