@@ -27,7 +27,6 @@ public class UserController {
     public Result<User> login(@RequestBody User user) {
         User login = userService.login(user);
         if (Objects.isNull(login)) {
-            // 登录失败返回错误
             return Result.error(500, "登录失败(用户名或密码错误)");
         } else {
             return Result.success(login);
