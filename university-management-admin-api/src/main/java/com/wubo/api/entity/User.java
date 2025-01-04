@@ -29,7 +29,5 @@ public class User {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     @TableField(exist = false)
-    private List<Role> roles;
-    @TableField(exist = false)
     private List<String> roleNames; // 给前端发送
 }
