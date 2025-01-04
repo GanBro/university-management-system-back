@@ -47,16 +47,6 @@ public class UserController {
         return Result.success(map);
     }
 
-    /**
-     * 用户退出登录接口
-     */
-    @Operation(summary = "用户退出登录接口", description = "退出登录时清除前端的 Token 信息")
-    @PostMapping("/logout")
-    public Result<?> logout() {
-        // 前端清除 token 即可，后端可以选择记录 token 无效
-        return Result.success("成功退出登录", null);
-    }
-
     @Operation(summary = "用户注册接口", description = "通过提交用户名、密码等信息进行注册")
     @PostMapping("/register")
     public Result<?> register(@RequestBody User user) {
