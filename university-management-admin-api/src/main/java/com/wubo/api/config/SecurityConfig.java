@@ -12,22 +12,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 禁用 CSRF 保护，因为这可能是一个使用无状态认证的 API
+                // 禁用 CSRF 保护
                 .csrf(csrf -> csrf.disable())
+
+                // 配置跨域
+                .cors(Customizer.withDefaults())
 
                 // 配置授权规则
                 .authorizeHttpRequests(auth -> auth
+                        // 允许静态资源访问
+                        .requestMatchers("/files/**").permitAll()
+                        .requestMatchers("/upload/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
-                )
-
-        // 可选：添加其他配置，如 HTTP Basic、OAuth2 等
-        // 例如，启用 HTTP Basic 认证：
-        //.httpBasic(Customizer.withDefaults())
-
-        // 您还可以在这里配置会话管理、异常处理等
-
-        ;
+                );
 
         return http.build();
     }

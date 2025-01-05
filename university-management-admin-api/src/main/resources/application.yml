@@ -11,5 +11,18 @@ spring:
     user:
       name: admin
       password: admin123
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      enabled: true
+  mvc:
+    static-path-pattern: /files/**
+
+file:
+  upload:
+    # Windows 系统路径使用双反斜杠
+    path: E:\\Code\\IDEA\\university-management-system-back\\uploads\\
+    url-prefix: /files/
 mybatis-plus:
   type-aliases-package: com.wubo.api.entity

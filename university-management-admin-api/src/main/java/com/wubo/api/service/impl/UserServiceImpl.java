@@ -120,4 +120,30 @@ public class UserServiceImpl implements UserService {
         }
         return userMapper.deleteBatchIds(ids) > 0;
     }
+
+    @Override
+    public boolean createUser(User user) {
+        try {
+            // 设置创建时间和更新时间
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            user.setCreatedAt(now);
+            user.setUpdatedAt(now);
+
+            // 插入用户记录
+            int result = userMapper.insert(user);
+            return result > 0;
+        } catch (Exception e) {
+            throw new RuntimeException("创建用户失败: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public User getUserByUsername(String username) {
+        if (!StringUtils.hasText(username)) {
+            return null;
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        return userMapper.selectOne(queryWrapper);
+    }
 }
