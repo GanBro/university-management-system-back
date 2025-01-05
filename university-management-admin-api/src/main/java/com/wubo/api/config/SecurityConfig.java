@@ -20,7 +20,12 @@ public class SecurityConfig {
 
                 // 配置授权规则
                 .authorizeHttpRequests(auth -> auth
-                        // 允许静态资源访问
+                        // Knife4j相关接口
+                        .requestMatchers("/doc.html").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        // 原有的配置
                         .requestMatchers("/files/**").permitAll()
                         .requestMatchers("/upload/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

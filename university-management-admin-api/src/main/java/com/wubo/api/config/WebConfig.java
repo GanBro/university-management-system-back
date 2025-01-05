@@ -18,6 +18,12 @@ public class WebConfig implements WebMvcConfigurer {
         String path = "file:///" + uploadPath.replace("\\", "/");
         registry.addResourceHandler("/files/**")
                 .addResourceLocations(path);
+
+        // 添加 Knife4j 的资源映射
+        registry.addResourceHandler("doc.html")
+                .addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
     @Override
@@ -26,6 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins("http://localhost:9528")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(true)
+                .maxAge(3600); // 设置预检请求的有效期
     }
 }
