@@ -1,5 +1,6 @@
 package com.wubo.api.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wubo.api.dto.Result;
 import com.wubo.api.entity.User;
 import com.wubo.api.service.UserService;
@@ -59,6 +60,24 @@ public class UserController {
         } catch (Exception e) {
             return Result.error(500, "注册失败: " + e.getMessage());
         }
+    }
+
+    @Operation(summary = "获取用户列表")
+    @GetMapping("/users")
+    public Result<Page<User>> list(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer limit,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String role
+    ) {
+        Page<User> pageParam = new Page<>(page, limit);
+        Map<String, Object> params = new HashMap<>();
+        params.put("username", username);
+        params.put("email", email);
+        params.put("role", role);
+
+        return Result.success(userService.getUserList(pageParam, params));
     }
 
 }

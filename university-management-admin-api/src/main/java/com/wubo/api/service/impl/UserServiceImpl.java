@@ -1,14 +1,19 @@
 package com.wubo.api.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wubo.api.entity.User;
 import com.wubo.api.mapper.UserMapper;
 import com.wubo.api.service.UserService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.Map;
+
 @Transactional
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,8 +38,7 @@ public class UserServiceImpl implements UserService {
     public User getUserByToken(String token) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("token", token);
-        User user = userMapper.selectOne(queryWrapper);
-        return user;
+        return userMapper.selectOne(queryWrapper);
     }
 
     @Override
@@ -60,5 +64,60 @@ public class UserServiceImpl implements UserService {
 
         // 保存用户
         return userMapper.insert(user) > 0;
+    }
+
+    @Override
+    public Page<User> getUserList(Page<User> page, Map<String, Object> params) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+
+        String username = (String) params.get("username");
+        String email = (String) params.get("email");
+        String role = (String) params.get("role");
+
+        if (StringUtils.hasText(username)) {
+            queryWrapper.like("username", username);
+        }
+        if (StringUtils.hasText(email)) {
+            queryWrapper.like("email", email);
+        }
+        if (StringUtils.hasText(role)) {
+            queryWrapper.eq("role", role);
+        }
+
+        queryWrapper.orderByDesc("user_id");
+        return userMapper.selectPage(page, queryWrapper);
+    }
+
+    @Override
+    public User getUserDetail(Integer userId) {
+        return userMapper.selectById(userId);
+    }
+
+    @Override
+    @Transactional
+    public boolean updateUser(User user) {
+        if (user.getUserId() == null) {
+            throw new RuntimeException("用户ID不能为空");
+        }
+
+        // 不允许更新用户名
+        user.setUsername(null);
+
+        // 如果密码为空，则不更新密码
+        if (!StringUtils.hasText(user.getPassword())) {
+            user.setPassword(null);
+        }
+
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        return userMapper.updateById(user) > 0;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteUsers(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return false;
+        }
+        return userMapper.deleteBatchIds(ids) > 0;
     }
 }

@@ -26,7 +26,6 @@ public interface UniversityService extends IService<University> {
 
     List<UniversityExportDTO> getExportData(Map<String, Object> params, List<String> fields);
 
-    // 新增的获取选项方法
     List<String> getAllTypes();
     List<String> getAllLevels();
     List<String> getAllProvinces();
