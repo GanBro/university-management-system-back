@@ -118,4 +118,12 @@ public class UniversityController {
             response.getWriter().println(Result.error("下载文件失败：" + e.getMessage()));
         }
     }
+    @GetMapping("/options")
+    public Result<Map<String, List<String>>> getOptions() {
+        Map<String, List<String>> options = new HashMap<>();
+        options.put("types", universityService.getAllTypes());
+        options.put("levels", universityService.getAllLevels());
+        options.put("provinces", universityService.getAllProvinces());
+        return Result.success(options);
+    }
 }

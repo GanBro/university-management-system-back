@@ -61,7 +61,6 @@
         <id property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="province" column="province"/>
-        <result property="city" column="city"/>
         <result property="address" column="address"/>
         <result property="adminDepartment" column="admin_department"/>
         <result property="website" column="website"/>
@@ -119,6 +118,18 @@
             </if>
         </where>
         ORDER BY id DESC
+    </select>
+
+    <select id="selectAllTypes" resultType="string">
+        SELECT DISTINCT type FROM university ORDER BY type
+    </select>
+
+    <select id="selectAllLevels" resultType="string">
+        SELECT DISTINCT level FROM university ORDER BY level
+    </select>
+
+    <select id="selectAllProvinces" resultType="string">
+        SELECT DISTINCT province FROM university ORDER BY province
     </select>
 
 </mapper>

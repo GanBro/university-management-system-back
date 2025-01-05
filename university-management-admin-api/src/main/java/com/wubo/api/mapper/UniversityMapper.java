@@ -18,4 +18,7 @@ public interface UniversityMapper extends BaseMapper<University> {
     List<Map<String, Object>> selectUniversityGrowthTrend();
 
     List<Map<String, Object>> selectUniversityDistribution();
+    List<String> selectAllTypes();
+    List<String> selectAllLevels();
+    List<String> selectAllProvinces();
 }

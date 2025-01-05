@@ -17,7 +17,6 @@ public class University {
 
     private String name;
     private String province;
-    private String city;
     private String address;
     private String adminDepartment;
     private String website;
