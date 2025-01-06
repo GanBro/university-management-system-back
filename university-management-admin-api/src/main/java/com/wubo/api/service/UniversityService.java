@@ -10,7 +10,7 @@ import com.wubo.api.entity.University;
 import java.util.List;
 import java.util.Map;
 
-public interface UniversityService extends IService<University> {
+public interface UniversityService {
 
     Page<University> getUniversityList(Integer page, Integer limit, Map<String, Object> params);
 

@@ -2,7 +2,6 @@ package com.wubo.api.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wubo.api.dto.UniversityDTO;
 import com.wubo.api.dto.UniversityDetailDTO;
 import com.wubo.api.dto.UniversityExportDTO;
@@ -10,6 +9,7 @@ import com.wubo.api.entity.University;
 import com.wubo.api.mapper.UniversityMapper;
 import com.wubo.api.service.UniversityService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -19,7 +19,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, University> implements UniversityService {
+@Transactional
+public class UniversityServiceImpl implements UniversityService {
+
+    @Autowired
+    private UniversityMapper universityMapper;
 
     @Override
     public Page<University> getUniversityList(Integer page, Integer limit, Map<String, Object> params) {
@@ -45,12 +49,14 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
         }
 
         queryWrapper.orderByDesc(University::getId);
-        return page(pageParam, queryWrapper);
+        return universityMapper.selectPage(pageParam, queryWrapper);
     }
 
     @Override
     public UniversityDetailDTO getUniversityDetail(Integer id) {
-        return baseMapper.selectUniversityDetail(id);
+        UniversityDetailDTO result = universityMapper.selectUniversityDetail(id);
+        System.out.println("查询结果：" + result);
+        return result;
     }
 
     @Override
@@ -58,7 +64,7 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
     public void createUniversity(UniversityDTO universityDTO) {
         University university = new University();
         BeanUtils.copyProperties(universityDTO, university);
-        save(university);
+        universityMapper.insert(university);
     }
 
     @Override
@@ -66,19 +72,19 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
     public void updateUniversity(UniversityDTO universityDTO) {
         University university = new University();
         BeanUtils.copyProperties(universityDTO, university);
-        updateById(university);
+        universityMapper.updateById(university);
     }
 
     @Override
     @Transactional
     public void deleteUniversity(Integer id) {
-        removeById(id);
+        universityMapper.deleteById(id);
     }
 
     @Override
     @Transactional
     public void batchDeleteUniversities(List<Integer> ids) {
-        removeBatchByIds(ids);
+        universityMapper.deleteBatchIds(ids);
     }
 
     @Override
@@ -103,7 +109,7 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
             queryWrapper.eq(University::getLevel, level);
         }
 
-        List<University> universities = list(queryWrapper);
+        List<University> universities = universityMapper.selectList(queryWrapper);
 
         return universities.stream().map(university -> {
             UniversityExportDTO exportDTO = new UniversityExportDTO();
@@ -114,16 +120,16 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
 
     @Override
     public List<String> getAllTypes() {
-        return baseMapper.selectAllTypes();
+        return universityMapper.selectAllTypes();
     }
 
     @Override
     public List<String> getAllLevels() {
-        return baseMapper.selectAllLevels();
+        return universityMapper.selectAllLevels();
     }
 
     @Override
     public List<String> getAllProvinces() {
-        return baseMapper.selectAllProvinces();
+        return universityMapper.selectAllProvinces();
     }
 }

@@ -4,6 +4,89 @@
 
 <mapper namespace="com.wubo.api.mapper.UniversityMapper">
 
+    <!-- 查询高校详情 -->
+    <select id="selectUniversityDetail" resultMap="UniversityDetailMap">
+        SELECT
+            u.id AS university_id,
+            u.name AS university_name,
+            u.province,
+            u.address,
+            u.admin_department,
+            u.website,
+            u.admission_website,
+            u.contact_number,
+            u.type,
+            u.level,
+            a.id AS admission_id,
+            a.university_id AS admission_university_id,
+            a.province AS admission_province,
+            a.year AS admission_year,
+            a.score_required AS admission_score,
+            s.id AS satisfaction_id,
+            s.university_id AS satisfaction_university_id,
+            s.category AS satisfaction_category,
+            s.rating AS satisfaction_rating,
+            s.rating_count AS satisfaction_count,
+            r.id AS recommendation_id,
+            r.university_id AS recommendation_university_id,
+            r.major_category AS recommendation_major_category,
+            r.rating AS recommendation_rating,
+            r.recommendation_count AS recommendation_count,
+            f.feature_name AS feature_name
+        FROM university u
+                 LEFT JOIN admission a ON u.id = a.university_id
+                 LEFT JOIN satisfaction_rating s ON u.id = s.university_id
+                 LEFT JOIN recommendation_rating r ON u.id = r.university_id
+                 LEFT JOIN university_feature f ON u.id = f.university_id
+        WHERE u.id = #{id}
+    </select>
+
+    <!-- ResultMap 映射 -->
+    <resultMap id="UniversityDetailMap" type="com.wubo.api.dto.UniversityDetailDTO">
+        <id property="id" column="university_id"/>
+        <result property="name" column="university_name"/>
+        <result property="province" column="province"/>
+        <result property="address" column="address"/>
+        <result property="adminDepartment" column="admin_department"/>
+        <result property="website" column="website"/>
+        <result property="admissionWebsite" column="admission_website"/>
+        <result property="contactNumber" column="contact_number"/>
+        <result property="type" column="type"/>
+        <result property="level" column="level"/>
+
+        <!-- 映射 admissionScores 集合 -->
+        <collection property="admissionScores" ofType="com.wubo.api.entity.Admission">
+            <id property="id" column="admission_id"/>
+            <result property="universityId" column="admission_university_id"/>
+            <result property="province" column="admission_province"/>
+            <result property="year" column="admission_year"/>
+            <result property="scoreRequired" column="admission_score"/>
+        </collection>
+
+        <!-- 映射 satisfactionRatings 集合 -->
+        <collection property="satisfactionRatings" ofType="com.wubo.api.entity.SatisfactionRating">
+            <id property="id" column="satisfaction_id"/>
+            <result property="universityId" column="satisfaction_university_id"/>
+            <result property="category" column="satisfaction_category"/>
+            <result property="rating" column="satisfaction_rating"/>
+            <result property="ratingCount" column="satisfaction_count"/>
+        </collection>
+
+        <!-- 映射 recommendationRatings 集合 -->
+        <collection property="recommendationRatings" ofType="com.wubo.api.entity.RecommendationRating">
+            <id property="id" column="recommendation_id"/>
+            <result property="universityId" column="recommendation_university_id"/>
+            <result property="majorCategory" column="recommendation_major_category"/>
+            <result property="rating" column="recommendation_rating"/>
+            <result property="recommendationCount" column="recommendation_count"/>
+        </collection>
+
+        <!-- 映射 features 集合 -->
+        <collection property="features" ofType="java.lang.String">
+            <result column="feature_name"/>
+        </collection>
+    </resultMap>
+
     <!-- 查询高校数量增长趋势 -->
     <select id="selectUniversityGrowthTrend" resultType="map">
         SELECT YEAR(created_at) AS year, COUNT(*) AS university_count
@@ -12,11 +95,14 @@
         ORDER BY year ASC
     </select>
 
+    <!-- 查询高校分布 -->
     <select id="selectUniversityDistribution" resultType="map">
         SELECT province AS province, COUNT(*) AS count
         FROM university
         GROUP BY province
     </select>
+
+    <!-- 查询高校列表 -->
     <select id="selectUniversityList" resultType="com.wubo.api.entity.University">
         SELECT * FROM university
         <where>
@@ -36,100 +122,18 @@
         ORDER BY id DESC
     </select>
 
-    <select id="selectUniversityDetail" resultMap="UniversityDetailMap">
-        SELECT
-            u.*,
-            a.province as admission_province,
-            a.year as admission_year,
-            a.score_required as admission_score,
-            s.category as satisfaction_category,
-            s.rating as satisfaction_rating,
-            s.rating_count as satisfaction_count,
-            r.major_category,
-            r.rating as recommendation_rating,
-            r.recommendation_count,
-            f.feature_name
-        FROM university u
-                 LEFT JOIN admission a ON u.id = a.university_id
-                 LEFT JOIN satisfaction_rating s ON u.id = s.university_id
-                 LEFT JOIN recommendation_rating r ON u.id = r.university_id
-                 LEFT JOIN university_feature f ON u.id = f.university_id
-        WHERE u.id = #{id}
-    </select>
-
-    <resultMap id="UniversityDetailMap" type="com.wubo.api.dto.UniversityDetailDTO">
-        <id property="id" column="id"/>
-        <result property="name" column="name"/>
-        <result property="province" column="province"/>
-        <result property="address" column="address"/>
-        <result property="adminDepartment" column="admin_department"/>
-        <result property="website" column="website"/>
-        <result property="admissionWebsite" column="admission_website"/>
-        <result property="contactNumber" column="contact_number"/>
-        <result property="type" column="type"/>
-        <result property="level" column="level"/>
-
-        <collection property="admissionScores" ofType="com.wubo.api.entity.Admission">
-            <result property="province" column="admission_province"/>
-            <result property="year" column="admission_year"/>
-            <result property="scoreRequired" column="admission_score"/>
-        </collection>
-
-        <collection property="satisfactionRatings" ofType="com.wubo.api.entity.SatisfactionRating">
-            <result property="category" column="satisfaction_category"/>
-            <result property="rating" column="satisfaction_rating"/>
-            <result property="ratingCount" column="satisfaction_count"/>
-        </collection>
-
-        <collection property="recommendationRatings" ofType="com.wubo.api.entity.RecommendationRating">
-            <result property="majorCategory" column="major_category"/>
-            <result property="rating" column="recommendation_rating"/>
-            <result property="recommendationCount" column="recommendation_count"/>
-        </collection>
-
-        <collection property="features" ofType="java.lang.String">
-            <result column="feature_name"/>
-        </collection>
-    </resultMap>
-
-    <select id="selectForExport" resultType="com.wubo.api.entity.University">
-        SELECT
-        <if test="fields != null and fields.size() > 0">
-            <foreach collection="fields" item="field" separator=",">
-                ${field}
-            </foreach>
-        </if>
-        <if test="fields == null or fields.size() == 0">
-            *
-        </if>
-        FROM university
-        <where>
-            <if test="params.name != null and params.name != ''">
-                AND name LIKE CONCAT('%', #{params.name}, '%')
-            </if>
-            <if test="params.province != null and params.province != ''">
-                AND province = #{params.province}
-            </if>
-            <if test="params.type != null and params.type != ''">
-                AND type = #{params.type}
-            </if>
-            <if test="params.level != null and params.level != ''">
-                AND level = #{params.level}
-            </if>
-        </where>
-        ORDER BY id DESC
-    </select>
-
+    <!-- 查询所有高校类型 -->
     <select id="selectAllTypes" resultType="string">
         SELECT DISTINCT type FROM university ORDER BY type
     </select>
 
+    <!-- 查询所有高校级别 -->
     <select id="selectAllLevels" resultType="string">
         SELECT DISTINCT level FROM university ORDER BY level
     </select>
 
+    <!-- 查询所有高校省份 -->
     <select id="selectAllProvinces" resultType="string">
         SELECT DISTINCT province FROM university ORDER BY province
     </select>
-
 </mapper>
