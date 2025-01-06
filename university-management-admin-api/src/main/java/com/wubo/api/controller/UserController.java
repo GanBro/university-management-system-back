@@ -12,10 +12,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import java.sql.Timestamp;
 import java.awt.*;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping
@@ -125,4 +123,31 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/users/{userId}")
+    public Result<?> delete(@PathVariable Integer userId) {
+        if (userId == null) {
+            return Result.error(400, "用户ID不能为空");
+        }
+        try {
+            userService.deleteUser(userId);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.error(500, "删除用户失败: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "批量删除用户", description = "批量删除多个用户")
+    @DeleteMapping("/users/batch")  // 改为 DELETE 请求以保持一致性
+    public Result<?> batchDelete(@RequestBody List<Integer> userIds) {
+        try {
+            userService.batchDeleteUsers(userIds);
+            return Result.success(null);
+        } catch (IllegalArgumentException e) {
+            return Result.error(400, e.getMessage());
+        } catch (RuntimeException e) {
+            return Result.error(500, e.getMessage());
+        } catch (Exception e) {
+            return Result.error(500, "批量删除用户失败: " + e.getMessage());
+        }
+    }
 }

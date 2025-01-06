@@ -8,34 +8,52 @@ import java.util.Map;
 
 public interface UserService {
     /**
-     * 登录
-     * @param user 用户信息
-     * @return user
+     * 用户登录
      */
     User login(User user);
 
+    /**
+     * 根据token获取用户信息
+     */
     User getUserByToken(String token);
 
-    // 注册方法
+    /**
+     * 用户注册
+     */
     boolean register(User user);
 
+    /**
+     * 获取用户列表
+     */
     Page<User> getUserList(Page<User> page, Map<String, Object> params);
+
+    /**
+     * 获取用户详情
+     */
     User getUserDetail(Integer userId);
+
+    /**
+     * 更新用户信息
+     */
     boolean updateUser(User user);
-    boolean deleteUsers(List<Integer> ids);
+
+    /**
+     * 删除单个用户
+     */
+    void deleteUser(Integer id);
+
+    /**
+     * 批量删除用户
+     */
+    void batchDeleteUsers(List<Integer> ids);
 
     /**
      * 创建新用户
-     * @param user 用户信息
-     * @return 是否创建成功
      */
     boolean createUser(User user);
 
     /**
      * 根据用户名获取用户
-     * @param username 用户名
-     * @return 用户信息
      */
     User getUserByUsername(String username);
-
 }

@@ -114,11 +114,53 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean deleteUsers(List<Integer> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return false;
+    public void deleteUser(Integer id) {
+        if (id == null) {
+            throw new IllegalArgumentException("用户ID不能为空");
         }
-        return userMapper.deleteBatchIds(ids) > 0;
+
+        // 检查用户是否存在
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        // 删除用户
+        int result = userMapper.deleteById(id);
+        if (result <= 0) {
+            throw new RuntimeException("删除用户失败");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void batchDeleteUsers(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("用户ID列表不能为空");
+        }
+
+        // 检查是否有管理员账号
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("user_id", ids)
+                .eq("role", "admin");
+        Long adminCount = userMapper.selectCount(queryWrapper);
+        if (adminCount > 0) {
+            throw new RuntimeException("不能删除管理员账号");
+        }
+
+        // 检查用户是否都存在
+        QueryWrapper<User> existWrapper = new QueryWrapper<>();
+        existWrapper.in("user_id", ids);
+        Long existingCount = userMapper.selectCount(existWrapper);
+        if (existingCount != ids.size()) {
+            throw new RuntimeException("部分用户不存在");
+        }
+
+        // 批量删除用户
+        int result = userMapper.deleteBatchIds(ids);
+        if (result != ids.size()) {
+            throw new RuntimeException("批量删除用户失败");
+        }
     }
 
     @Override
