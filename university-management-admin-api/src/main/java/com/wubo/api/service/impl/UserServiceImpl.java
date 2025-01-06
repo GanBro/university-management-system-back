@@ -188,4 +188,9 @@ public class UserServiceImpl implements UserService {
         queryWrapper.eq("username", username);
         return userMapper.selectOne(queryWrapper);
     }
+
+    @Override
+    public User getUserById(Integer userId) {
+        return userMapper.selectById(userId);
+    }
 }

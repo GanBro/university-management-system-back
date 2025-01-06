@@ -150,4 +150,21 @@ public class UserController {
             return Result.error(500, "批量删除用户失败: " + e.getMessage());
         }
     }
+
+    @Operation(summary = "获取用户详情")
+    @GetMapping("/users/{userId}")
+    public Result<User> getUserDetail(@PathVariable Integer userId) {
+        if (userId == null) {
+            return Result.error(400, "用户ID不能为空");
+        }
+        try {
+            User user = userService.getUserById(userId);
+            if (user == null) {
+                return Result.error(404, "用户不存在");
+            }
+            return Result.success(user);
+        } catch (Exception e) {
+            return Result.error(500, "获取用户详情失败: " + e.getMessage());
+        }
+    }
 }
