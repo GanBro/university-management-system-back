@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/universities")
 @Tag(name = "高校管理接口", description = "提供高校的增删改查、导出功能")
@@ -76,6 +78,7 @@ public class UniversityController {
     public Result<?> update(@PathVariable Integer id, @RequestBody UniversityDTO universityDTO) {
         universityDTO.setId(id);
         universityService.updateUniversity(universityDTO);
+        log.info("更新高校信息：{}", universityDTO);
         return Result.success(null);
     }
 

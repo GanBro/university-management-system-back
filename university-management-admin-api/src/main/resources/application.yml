@@ -25,10 +25,12 @@ file:
     path: E:\\Code\\IDEA\\university-management-system-back\\uploads\\
     url-prefix: /files/
 mybatis-plus:
+  type-handlers-package: com.wubo.api.enums
   type-aliases-package: com.wubo.api.entity
   configuration:
     # 开启驼峰命名转换
     map-underscore-to-camel-case: true
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
   global-config:
     db-config:
       # 设置实体类所对应的表的统一前缀

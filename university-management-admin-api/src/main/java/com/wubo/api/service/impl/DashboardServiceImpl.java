@@ -25,27 +25,6 @@ public class DashboardServiceImpl implements DashboardService {
     @Resource
     private UserMapper userMapper;
 
-/*    @Override
-    public Map<String, Object> getStats() {
-        Map<String, Object> stats = new HashMap<>();
-
-        // 查询高校总数量
-        long totalUniversityCount = universityMapper.selectCount(null);
-        stats.put("totalUniversityCount", totalUniversityCount);
-
-        // 查询最近30天新增高校数量
-        QueryWrapper<University> recentUniversityQuery = new QueryWrapper<>();
-        recentUniversityQuery.ge("created_at", getLast30Days());
-        long recentUniversityCount = universityMapper.selectCount(recentUniversityQuery);
-        stats.put("recentUniversityCount", recentUniversityCount);
-
-        // 查询高校分布（按省份分组统计）
-        List<Map<String, Object>> universityDistribution = universityMapper.selectUniversityDistribution();
-        stats.put("universityDistribution", universityDistribution != null ? universityDistribution : List.of());
-
-        return stats;
-    }*/
-
     // 获取仪表盘统计数据
     @Override
     @Cacheable(value = "dashboardStats", unless = "#result == null")

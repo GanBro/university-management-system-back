@@ -15,11 +15,4 @@ public class UniversityDetailDTO extends UniversityDTO {
     private List<SatisfactionRating> satisfactionRatings;
     private List<RecommendationRating> recommendationRatings;
     private List<String> features;
-    private String introduction;    // 学校简介
-    private String departments;     // 院系设置
-    private String majors;         // 专业介绍
-    private String admissionRules; // 录取规则
-    private String scholarships;   // 奖学金设置
-    private String accommodation;  // 食宿条件
-    private String contactInfo;    // 联系办法
 }
