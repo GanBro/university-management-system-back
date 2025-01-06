@@ -17,6 +17,13 @@
             u.contact_number,
             u.type,
             u.level,
+            u.introduction,
+            u.departments,
+            u.majors,
+            u.admission_rules,
+            u.scholarships,
+            u.accommodation,
+            u.contact_info,
             a.id AS admission_id,
             a.university_id AS admission_university_id,
             a.province AS admission_province,
@@ -53,6 +60,13 @@
         <result property="contactNumber" column="contact_number"/>
         <result property="type" column="type"/>
         <result property="level" column="level"/>
+        <result property="introduction" column="introduction"/>
+        <result property="departments" column="departments"/>
+        <result property="majors" column="majors"/>
+        <result property="admissionRules" column="admission_rules"/>
+        <result property="scholarships" column="scholarships"/>
+        <result property="accommodation" column="accommodation"/>
+        <result property="contactInfo" column="contact_info"/>
 
         <!-- 映射 admissionScores 集合 -->
         <collection property="admissionScores" ofType="com.wubo.api.entity.Admission">
