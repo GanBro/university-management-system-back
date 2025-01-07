@@ -1,4 +1,3 @@
-// src/main/java/com/wubo/api/dto/UniversityExportDTO.java
 package com.wubo.api.dto;
 
 import com.alibaba.excel.annotation.ExcelProperty;
@@ -35,4 +34,7 @@ public class UniversityExportDTO {
 
     @ExcelProperty("联系电话")
     private String contactNumber;
+
+    @ExcelProperty("特色标签")
+    private String features;
 }

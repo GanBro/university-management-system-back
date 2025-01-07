@@ -18,7 +18,12 @@ public class UniversityDTO {
     private String contactNumber;
     private String type;
     private String level;
-    private List<String> features;
+    // 新增字段
+    private Integer studentCount;
+    private Integer teacherCount;
+    private Integer libraryCount;
+    private Integer campusArea;
+    // 现有字段
     private String introduction;
     private String departments;
     private String majors;
@@ -26,8 +31,6 @@ public class UniversityDTO {
     private String scholarships;
     private String accommodation;
     private String contactInfo;
-    private Integer studentCount;
-    private Integer teacherCount;
-    private Integer libraryCount;
-    private BigDecimal campusArea;
+    // 特性列表
+    private List<String> features;
 }

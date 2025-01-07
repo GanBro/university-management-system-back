@@ -23,6 +23,10 @@ public class University {
     private String contactNumber;
     private String type;
     private String level;
+    private Integer studentCount;
+    private Integer teacherCount;
+    private Integer libraryCount;
+    private Integer campusArea;
     private String introduction;
     private String departments;
     private String majors;
