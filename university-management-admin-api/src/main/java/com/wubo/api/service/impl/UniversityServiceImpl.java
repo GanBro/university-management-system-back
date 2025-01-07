@@ -132,4 +132,9 @@ public class UniversityServiceImpl implements UniversityService {
     public List<String> getAllProvinces() {
         return universityMapper.selectAllProvinces();
     }
+
+    @Override
+    public Map<String, Integer> getAdmissionStats(Integer universityId, Integer year) {
+        return universityMapper.selectAdmissionStats(universityId, year);
+    }
 }

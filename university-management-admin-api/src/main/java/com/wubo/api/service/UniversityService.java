@@ -29,4 +29,6 @@ public interface UniversityService {
     List<String> getAllTypes();
     List<String> getAllLevels();
     List<String> getAllProvinces();
+    // 新增获取招生统计信息的方法
+    Map<String, Integer> getAdmissionStats(Integer universityId, Integer year);
 }

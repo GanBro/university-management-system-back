@@ -17,6 +17,10 @@
             u.contact_number,
             u.type,
             u.level,
+            u.student_count,
+            u.teacher_count,
+            u.library_count,
+            u.campus_area,
             u.introduction,
             u.departments,
             u.majors,
@@ -29,6 +33,9 @@
             a.province AS admission_province,
             a.year AS admission_year,
             a.score_required AS admission_score,
+            a.plan_count AS admission_plan_count,
+            a.actual_count AS admission_actual_count,
+            a.lowest_rank AS admission_lowest_rank,
             s.id AS satisfaction_id,
             s.university_id AS satisfaction_university_id,
             s.category AS satisfaction_category,
@@ -50,6 +57,7 @@
 
     <!-- ResultMap 映射 -->
     <resultMap id="UniversityDetailMap" type="com.wubo.api.dto.UniversityDetailDTO">
+        <!-- 基本信息映射 -->
         <id property="id" column="university_id"/>
         <result property="name" column="university_name"/>
         <result property="province" column="province"/>
@@ -60,6 +68,12 @@
         <result property="contactNumber" column="contact_number"/>
         <result property="type" column="type"/>
         <result property="level" column="level"/>
+        <!-- 新增学校规模信息映射 -->
+        <result property="studentCount" column="student_count"/>
+        <result property="teacherCount" column="teacher_count"/>
+        <result property="libraryCount" column="library_count"/>
+        <result property="campusArea" column="campus_area"/>
+        <!-- 详细信息映射 -->
         <result property="introduction" column="introduction"/>
         <result property="departments" column="departments"/>
         <result property="majors" column="majors"/>
@@ -75,6 +89,9 @@
             <result property="province" column="admission_province"/>
             <result property="year" column="admission_year"/>
             <result property="scoreRequired" column="admission_score"/>
+            <result property="planCount" column="admission_plan_count"/>
+            <result property="actualCount" column="admission_actual_count"/>
+            <result property="lowestRank" column="admission_lowest_rank"/>
         </collection>
 
         <!-- 映射 satisfactionRatings 集合 -->
@@ -149,5 +166,36 @@
     <!-- 查询所有高校省份 -->
     <select id="selectAllProvinces" resultType="string">
         SELECT DISTINCT province FROM university ORDER BY province
+    </select>
+
+    <!-- 查询招生统计信息 -->
+    <select id="selectAdmissionStats" resultType="map">
+        SELECT
+        u.name as universityName,
+        a.year,
+        SUM(a.plan_count) as totalPlanCount,
+        SUM(a.actual_count) as totalActualCount,
+        AVG(a.score_required) as averageScore,
+        MIN(a.lowest_rank) as bestRank
+        FROM university u
+        LEFT JOIN admission a ON u.id = a.university_id
+        WHERE u.id = #{universityId}
+        <if test="year != null">
+            AND a.year = #{year}
+        </if>
+        GROUP BY u.name, a.year
+        ORDER BY a.year DESC
+    </select>
+
+    <!-- 查询学校规模统计 -->
+    <select id="selectUniversityScaleStats" resultType="map">
+        SELECT
+            AVG(student_count) as avgStudentCount,
+            MAX(student_count) as maxStudentCount,
+            AVG(teacher_count) as avgTeacherCount,
+            AVG(library_count) as avgLibraryCount,
+            AVG(campus_area) as avgCampusArea
+        FROM university
+        WHERE level = #{level}
     </select>
 </mapper>

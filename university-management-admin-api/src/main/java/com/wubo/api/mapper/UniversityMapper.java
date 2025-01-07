@@ -6,6 +6,7 @@ import com.wubo.api.dto.UniversityDetailDTO;
 import com.wubo.api.entity.University;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 import java.util.Map;
@@ -21,4 +22,11 @@ public interface UniversityMapper extends BaseMapper<University> {
     List<String> selectAllTypes();
     List<String> selectAllLevels();
     List<String> selectAllProvinces();
+    // 可以添加一个方法来查询招生统计信息
+    @Select("SELECT SUM(plan_count) as totalPlan, " +
+            "SUM(actual_count) as totalActual " +
+            "FROM admission " +
+            "WHERE university_id = #{universityId} AND year = #{year}")
+    Map<String, Integer> selectAdmissionStats(@Param("universityId") Integer universityId,
+                                              @Param("year") Integer year);
 }

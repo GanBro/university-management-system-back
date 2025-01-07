@@ -19,4 +19,8 @@ public class Admission {
     private String province; // 省份
     private int year; // 年份
     private int scoreRequired; // 录取分数线
+    // 新增
+    private Integer planCount;
+    private Integer actualCount;
+    private Integer lowestRank;
 }

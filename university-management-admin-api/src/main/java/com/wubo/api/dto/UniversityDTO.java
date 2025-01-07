@@ -3,6 +3,7 @@ package com.wubo.api.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -25,4 +26,8 @@ public class UniversityDTO {
     private String scholarships;
     private String accommodation;
     private String contactInfo;
+    private Integer studentCount;
+    private Integer teacherCount;
+    private Integer libraryCount;
+    private BigDecimal campusArea;
 }
