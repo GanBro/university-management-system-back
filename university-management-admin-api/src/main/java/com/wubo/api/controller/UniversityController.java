@@ -24,21 +24,22 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/universities")
+@RequestMapping("/universities")
 @Tag(name = "高校管理接口", description = "提供高校的增删改查、导出功能")
 public class UniversityController {
 
     @Autowired
     private UniversityService universityService;
 
-    @Operation(summary = "分页查询高校列表", description = "根据分页参数、名称、所在省份、类型、级别查询高校列表")
+    @Operation(summary = "分页查询高校列表", description = "根据分页参数、名称、所在省份、类型、级别、主管部门查询高校列表")
     @Parameters({
             @Parameter(name = "page", description = "当前页码", required = true),
             @Parameter(name = "limit", description = "每页显示数量", required = true),
             @Parameter(name = "name", description = "高校名称", required = false),
             @Parameter(name = "province", description = "高校所在省份", required = false),
             @Parameter(name = "type", description = "高校类型", required = false),
-            @Parameter(name = "level", description = "高校级别", required = false)
+            @Parameter(name = "level", description = "高校级别", required = false),
+            @Parameter(name = "adminDepartment", description = "主管部门", required = false)
     })
     @GetMapping
     public Result<Page<University>> list(
@@ -47,14 +48,17 @@ public class UniversityController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String province,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String level
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String adminDepartment
     ) {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("province", province);
         params.put("type", type);
         params.put("level", level);
+        params.put("adminDepartment", adminDepartment);
 
+        log.info("查询参数: {}", params);
         return Result.success(universityService.getUniversityList(page, limit, params));
     }
 

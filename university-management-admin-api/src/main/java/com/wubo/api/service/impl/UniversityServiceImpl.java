@@ -33,12 +33,14 @@ public class UniversityServiceImpl implements UniversityService {
     @Override
     public Page<University> getUniversityList(Integer page, Integer limit, Map<String, Object> params) {
         Page<University> pageParam = new Page<>(page, limit);
+
         LambdaQueryWrapper<University> queryWrapper = new LambdaQueryWrapper<>();
 
         String name = (String) params.get("name");
         String province = (String) params.get("province");
         String type = (String) params.get("type");
         String level = (String) params.get("level");
+        String adminDepartment = (String) params.get("adminDepartment");
 
         if (StringUtils.hasText(name)) {
             queryWrapper.like(University::getName, name);
@@ -52,9 +54,18 @@ public class UniversityServiceImpl implements UniversityService {
         if (StringUtils.hasText(level)) {
             queryWrapper.eq(University::getLevel, level);
         }
+        if (StringUtils.hasText(adminDepartment)) {
+            queryWrapper.eq(University::getAdminDepartment, adminDepartment);
+        }
 
         queryWrapper.orderByDesc(University::getId);
-        return universityMapper.selectPage(pageParam, queryWrapper);
+        Page<University> result = universityMapper.selectPage(pageParam, queryWrapper);
+
+        // 确保设置正确的总记录数
+        result.setTotal(result.getRecords().size());
+        result.setPages((result.getTotal() + limit - 1) / limit);
+
+        return result;
     }
 
     @Override

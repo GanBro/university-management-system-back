@@ -133,26 +133,32 @@
         GROUP BY province
     </select>
 
-    <!-- 查询高校列表 -->
     <select id="selectUniversityList" resultType="com.wubo.api.entity.University">
-        SELECT * FROM university
+        SELECT
+        u.*,
+        GROUP_CONCAT(DISTINCT f.feature_name) as features
+        FROM university u
+        LEFT JOIN university_feature f ON u.id = f.university_id
         <where>
             <if test="params.name != null and params.name != ''">
-                AND name LIKE CONCAT('%', #{params.name}, '%')
+                AND u.name LIKE CONCAT('%', #{params.name}, '%')
             </if>
             <if test="params.province != null and params.province != ''">
-                AND province = #{params.province}
+                AND u.province = #{params.province}
             </if>
             <if test="params.type != null and params.type != ''">
-                AND type = #{params.type}
+                AND u.type = #{params.type}
             </if>
             <if test="params.level != null and params.level != ''">
-                AND level = #{params.level}
+                AND u.level = #{params.level}
+            </if>
+            <if test="params.adminDepartment != null and params.adminDepartment != ''">
+                AND u.admin_department = #{params.adminDepartment}
             </if>
         </where>
-        ORDER BY id DESC
+        GROUP BY u.id
+        ORDER BY u.id DESC
     </select>
-
     <!-- 查询所有高校类型 -->
     <select id="selectAllTypes" resultType="string">
         SELECT DISTINCT type FROM university ORDER BY type
