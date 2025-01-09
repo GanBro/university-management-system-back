@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/dashboard")
 @Tag(name = "仪表盘接口", description = "提供仪表盘相关的 API")
@@ -28,6 +29,7 @@ public class DashboardController {
     @GetMapping("/stats")
     public Result<Map<String, Object>> getStats() {
         Map<String, Object> stats = dashboardService.getStats();
+        log.info("获取仪表盘统计数据成功: {}", stats);
         return Result.success(stats);
     }
 
@@ -41,9 +43,10 @@ public class DashboardController {
     public Result<List<Map<String, Object>>> getGrowthTrend() {
         try {
             List<Map<String, Object>> growthTrend = dashboardService.getUniversityGrowthTrend();
+            log.info("获取高校数量增长趋势数据成功");
             return Result.success(growthTrend);
         } catch (Exception e) {
-            e.printStackTrace(); // 记录日志
+            log.error("获取高校数量增长趋势失败", e);
             return Result.error("获取高校数量增长趋势失败，请稍后重试！");
         }
     }

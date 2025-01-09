@@ -58,47 +58,83 @@ public class UniversityController {
         params.put("level", level);
         params.put("adminDepartment", adminDepartment);
 
-        log.info("查询参数: {}", params);
-        return Result.success(universityService.getUniversityList(page, limit, params));
+        log.info("查询高校列表, 页码: {}, 每页数量: {}, 查询参数: {}", page, limit, params);
+        Page<University> result = universityService.getUniversityList(page, limit, params);
+        log.info("查询高校列表完成, 总记录数: {}", result.getTotal());
+        return Result.success(result);
     }
 
     @Operation(summary = "获取高校详情", description = "根据高校ID获取高校详细信息")
     @Parameter(name = "id", description = "高校ID", required = true)
     @GetMapping("/{id}")
     public Result<UniversityDetailDTO> detail(@PathVariable Integer id) {
-        return Result.success(universityService.getUniversityDetail(id));
+        log.info("获取高校详情, id: {}", id);
+        UniversityDetailDTO detail = universityService.getUniversityDetail(id);
+        if (detail == null) {
+            log.warn("高校详情不存在, id: {}", id);
+            return Result.error("高校不存在");
+        }
+        log.info("获取高校详情成功, id: {}", id);
+        return Result.success(detail);
     }
 
     @Operation(summary = "新增高校", description = "创建新的高校信息")
     @PostMapping
     public Result<?> create(@RequestBody UniversityDTO universityDTO) {
-        universityService.createUniversity(universityDTO);
-        return Result.success(null);
+        log.info("创建高校信息: {}", universityDTO);
+        try {
+            universityService.createUniversity(universityDTO);
+            log.info("创建高校成功, 名称: {}", universityDTO.getName());
+            return Result.success(null);
+        } catch (Exception e) {
+            log.error("创建高校失败", e);
+            return Result.error("创建高校失败: " + e.getMessage());
+        }
     }
 
     @Operation(summary = "更新高校信息", description = "根据高校ID更新高校信息")
     @Parameter(name = "id", description = "高校ID", required = true)
     @PutMapping("/{id}")
     public Result<?> update(@PathVariable Integer id, @RequestBody UniversityDTO universityDTO) {
-        universityDTO.setId(id);
-        universityService.updateUniversity(universityDTO);
-        log.info("更新高校信息：{}", universityDTO);
-        return Result.success(null);
+        log.info("更新高校信息, id: {}, 更新内容: {}", id, universityDTO);
+        try {
+            universityDTO.setId(id);
+            universityService.updateUniversity(universityDTO);
+            log.info("更新高校信息成功, id: {}", id);
+            return Result.success(null);
+        } catch (Exception e) {
+            log.error("更新高校信息失败, id: {}", id, e);
+            return Result.error("更新高校信息失败: " + e.getMessage());
+        }
     }
 
     @Operation(summary = "删除高校", description = "根据高校ID删除高校信息")
     @Parameter(name = "id", description = "高校ID", required = true)
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Integer id) {
-        universityService.deleteUniversity(id);
-        return Result.success(null);
+        log.info("删除高校, id: {}", id);
+        try {
+            universityService.deleteUniversity(id);
+            log.info("删除高校成功, id: {}", id);
+            return Result.success(null);
+        } catch (Exception e) {
+            log.error("删除高校失败, id: {}", id, e);
+            return Result.error("删除高校失败: " + e.getMessage());
+        }
     }
 
     @Operation(summary = "批量删除高校", description = "批量删除高校信息")
     @PostMapping("/batch")
     public Result<?> batchDelete(@RequestBody List<Integer> ids) {
-        universityService.batchDeleteUniversities(ids);
-        return Result.success(null);
+        log.info("批量删除高校, ids: {}", ids);
+        try {
+            universityService.batchDeleteUniversities(ids);
+            log.info("批量删除高校成功, 数量: {}", ids.size());
+            return Result.success(null);
+        } catch (Exception e) {
+            log.error("批量删除高校失败", e);
+            return Result.error("批量删除高校失败: " + e.getMessage());
+        }
     }
 
     @Operation(summary = "导出高校列表", description = "根据筛选条件导出高校数据")
@@ -118,6 +154,8 @@ public class UniversityController {
             @RequestParam(required = false) String level,
             @RequestParam(required = false) String fields
     ) throws IOException {
+        log.info("导出高校列表, 筛选条件: name={}, province={}, type={}, level={}, fields={}",
+                name, province, type, level, fields);
         try {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setCharacterEncoding("utf-8");
@@ -137,13 +175,16 @@ public class UniversityController {
 
             List<UniversityExportDTO> exportData = universityService.getExportData(params, fieldList);
 
+            log.info("开始导出高校数据, 数据量: {}", exportData.size());
             EasyExcel.write(response.getOutputStream(), UniversityExportDTO.class)
                     .includeColumnFieldNames(fieldList)
                     .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
                     .sheet("高校列表")
                     .doWrite(exportData);
+            log.info("导出高校数据完成");
 
         } catch (Exception e) {
+            log.error("导出高校列表失败", e);
             response.reset();
             response.setContentType("application/json");
             response.setCharacterEncoding("utf-8");
@@ -154,10 +195,17 @@ public class UniversityController {
     @Operation(summary = "获取筛选条件", description = "获取高校类型、级别、所在省份等筛选条件列表")
     @GetMapping("/options")
     public Result<Map<String, List<String>>> getOptions() {
-        Map<String, List<String>> options = new HashMap<>();
-        options.put("types", universityService.getAllTypes());
-        options.put("levels", universityService.getAllLevels());
-        options.put("provinces", universityService.getAllProvinces());
-        return Result.success(options);
+        log.info("获取高校筛选条件");
+        try {
+            Map<String, List<String>> options = new HashMap<>();
+            options.put("types", universityService.getAllTypes());
+            options.put("levels", universityService.getAllLevels());
+            options.put("provinces", universityService.getAllProvinces());
+            log.info("获取筛选条件成功");
+            return Result.success(options);
+        } catch (Exception e) {
+            log.error("获取筛选条件失败", e);
+            return Result.error("获取筛选条件失败: " + e.getMessage());
+        }
     }
 }
