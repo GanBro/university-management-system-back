@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.wubo</groupId>
-		<artifactId>university-management-system</artifactId>
+		<artifactId>university-management-system-back</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>university-management-admin-api</artifactId>
