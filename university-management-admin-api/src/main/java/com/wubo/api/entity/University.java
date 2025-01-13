@@ -34,4 +34,6 @@ public class University {
     private String scholarships;
     private String accommodation;
     private String contactInfo;
+    private String logo;
+//    private String features;
 }

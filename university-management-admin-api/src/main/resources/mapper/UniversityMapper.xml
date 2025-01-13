@@ -135,7 +135,28 @@
 
     <select id="selectUniversityList" resultType="com.wubo.api.entity.University">
         SELECT
-        u.*,
+        u.id,
+        u.name,
+        u.province,
+        u.address,
+        u.admin_department,
+        u.website,
+        u.admission_website,
+        u.contact_number,
+        u.type,
+        u.level,
+        u.student_count,
+        u.teacher_count,
+        u.library_count,
+        u.campus_area,
+        u.introduction,
+        u.departments,
+        u.majors,
+        u.admission_rules,
+        u.scholarships,
+        u.accommodation,
+        u.contact_info,
+        u.logo,
         GROUP_CONCAT(DISTINCT f.feature_name) as features
         FROM university u
         LEFT JOIN university_feature f ON u.id = f.university_id
@@ -156,7 +177,12 @@
                 AND u.admin_department = #{params.adminDepartment}
             </if>
         </where>
-        GROUP BY u.id
+        GROUP BY u.id, u.name, u.province, u.address, u.admin_department,
+        u.website, u.admission_website, u.contact_number, u.type,
+        u.level, u.student_count, u.teacher_count, u.library_count,
+        u.campus_area, u.introduction, u.departments, u.majors,
+        u.admission_rules, u.scholarships, u.accommodation,
+        u.contact_info, u.logo
         ORDER BY u.id DESC
     </select>
     <!-- 查询所有高校类型 -->
