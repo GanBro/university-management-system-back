@@ -1,6 +1,7 @@
 package com.wubo.api.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wubo.api.dto.NewsQueryDTO;
 import com.wubo.api.dto.Result;
 import com.wubo.api.entity.News;
 import com.wubo.api.service.NewsService;
@@ -11,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.HashMap;
 
 @Slf4j
 @RestController
@@ -24,15 +25,15 @@ public class NewsController {
 
     @Operation(summary = "获取信息列表")
     @GetMapping
-    public Result<Page<News>> list(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer limit,
-            @RequestParam(required = false) Integer universityId,  // 新增参数
-            @RequestParam(required = false) Map<String, Object> params) {
-        if (universityId != null) {
-            params.put("universityId", universityId);
+    public Result<Page<News>> list(@ModelAttribute NewsQueryDTO queryDTO) {
+        if (queryDTO.getParams() == null) {
+            queryDTO.setParams(new HashMap<>()); // 初始化 params
         }
-        return Result.success(newsService.getNewsList(page, limit, params));
+        if (queryDTO.getUniversityId() != null) {
+            queryDTO.getParams().put("universityId", queryDTO.getUniversityId());
+        }
+        return Result.success(newsService.getNewsList(
+                queryDTO.getPage(), queryDTO.getLimit(), queryDTO.getParams()));
     }
 
     @Operation(summary = "获取信息详情")

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -26,6 +27,10 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     public Page<News> getNewsList(Integer page, Integer limit, Map<String, Object> params) {
+        if (params == null) {
+            params = new HashMap<>(); // 初始化 params
+        }
+
         Page<News> pageParam = new Page<>(page, limit);
         LambdaQueryWrapper<News> queryWrapper = new LambdaQueryWrapper<>();
 

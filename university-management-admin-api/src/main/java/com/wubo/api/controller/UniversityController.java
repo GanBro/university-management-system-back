@@ -3,10 +3,7 @@ package com.wubo.api.controller;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wubo.api.dto.Result;
-import com.wubo.api.dto.UniversityDTO;
-import com.wubo.api.dto.UniversityDetailDTO;
-import com.wubo.api.dto.UniversityExportDTO;
+import com.wubo.api.dto.*;
 import com.wubo.api.entity.University;
 import com.wubo.api.service.UniversityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,35 +29,26 @@ public class UniversityController {
     private UniversityService universityService;
 
     @Operation(summary = "分页查询高校列表", description = "根据分页参数、名称、所在省份、类型、级别、主管部门查询高校列表")
-    @Parameters({
-            @Parameter(name = "page", description = "当前页码", required = true),
-            @Parameter(name = "limit", description = "每页显示数量", required = true),
-            @Parameter(name = "name", description = "高校名称", required = false),
-            @Parameter(name = "province", description = "高校所在省份", required = false),
-            @Parameter(name = "type", description = "高校类型", required = false),
-            @Parameter(name = "level", description = "高校级别", required = false),
-            @Parameter(name = "adminDepartment", description = "主管部门", required = false)
-    })
     @GetMapping
-    public Result<Page<University>> list(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer limit,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String province,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String level,
-            @RequestParam(required = false) String adminDepartment
-    ) {
+    public Result<Page<University>> list(@ModelAttribute UniversityQueryDTO queryDTO) {
+        // 设置默认值
+        if (queryDTO.getPage() == null) {
+            queryDTO.setPage(1); // 默认页码
+        }
+        if (queryDTO.getLimit() == null) {
+            queryDTO.setLimit(10); // 默认每页数量
+        }
+        log.info("分页查询高校列表, 查询参数: {}", queryDTO);
+        // 业务逻辑
         Map<String, Object> params = new HashMap<>();
-        params.put("name", name);
-        params.put("province", province);
-        params.put("type", type);
-        params.put("level", level);
-        params.put("adminDepartment", adminDepartment);
+        params.put("name", queryDTO.getName());
+        params.put("province", queryDTO.getProvince());
+        params.put("type", queryDTO.getType());
+        params.put("level", queryDTO.getLevel());
+        params.put("adminDepartment", queryDTO.getAdminDepartment());
 
-        log.info("查询高校列表, 页码: {}, 每页数量: {}, 查询参数: {}", page, limit, params);
-        Page<University> result = universityService.getUniversityList(page, limit, params);
-        log.info("查询高校列表完成, 总记录数: {}", result.getTotal());
+        Page<University> result = universityService.getUniversityList(
+                queryDTO.getPage(), queryDTO.getLimit(), params);
         return Result.success(result);
     }
 
@@ -138,41 +126,35 @@ public class UniversityController {
     }
 
     @Operation(summary = "导出高校列表", description = "根据筛选条件导出高校数据")
-    @Parameters({
-            @Parameter(name = "name", description = "高校名称", required = false),
-            @Parameter(name = "province", description = "高校所在省份", required = false),
-            @Parameter(name = "type", description = "高校类型", required = false),
-            @Parameter(name = "level", description = "高校级别", required = false),
-            @Parameter(name = "fields", description = "导出的字段列表，逗号分隔", required = false)
-    })
     @GetMapping("/export")
     public void export(
             HttpServletResponse response,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String province,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String level,
-            @RequestParam(required = false) String fields
+            @ModelAttribute UniversityExportQueryDTO queryDTO
     ) throws IOException {
         log.info("导出高校列表, 筛选条件: name={}, province={}, type={}, level={}, fields={}",
-                name, province, type, level, fields);
+                queryDTO.getName(), queryDTO.getProvince(), queryDTO.getType(), queryDTO.getLevel(), queryDTO.getFields());
+
         try {
+            // 设置响应头
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setCharacterEncoding("utf-8");
             String fileName = URLEncoder.encode("高校列表", "UTF-8").replaceAll("\\+", "%20");
             response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
             response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
 
+            // 构建查询参数
             Map<String, Object> params = new HashMap<>();
-            params.put("name", name);
-            params.put("province", province);
-            params.put("type", type);
-            params.put("level", level);
+            params.put("name", queryDTO.getName());
+            params.put("province", queryDTO.getProvince());
+            params.put("type", queryDTO.getType());
+            params.put("level", queryDTO.getLevel());
 
-            List<String> fieldList = fields != null ?
-                    Arrays.asList(fields.split(",")) :
+            // 解析导出的字段
+            List<String> fieldList = queryDTO.getFields() != null ?
+                    Arrays.asList(queryDTO.getFields().split(",")) :
                     Collections.emptyList();
 
+            // 获取导出数据
             List<UniversityExportDTO> exportData = universityService.getExportData(params, fieldList);
 
             log.info("开始导出高校数据, 数据量: {}", exportData.size());

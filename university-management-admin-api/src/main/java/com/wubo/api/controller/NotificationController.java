@@ -2,6 +2,7 @@
 package com.wubo.api.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wubo.api.dto.NotificationQueryDTO;
 import com.wubo.api.dto.Result;
 import com.wubo.api.entity.Notification;
 import com.wubo.api.service.NotificationService;
@@ -22,13 +23,11 @@ public class NotificationController {
 
     @Operation(summary = "获取通知列表")
     @GetMapping
-    public Result<Page<Notification>> list(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer limit,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String status) {
-        log.info("获取通知列表, 页码: {}, 每页数量: {}, 类型: {}, 状态: {}", page, limit, type, status);
-        Page<Notification> result = notificationService.getNotificationList(page, limit, type, status);
+    public Result<Page<Notification>> list(@ModelAttribute NotificationQueryDTO queryDTO) {
+        log.info("获取通知列表, 页码: {}, 每页数量: {}, 类型: {}, 状态: {}",
+                queryDTO.getPage(), queryDTO.getLimit(), queryDTO.getType(), queryDTO.getStatus());
+        Page<Notification> result = notificationService.getNotificationList(
+                queryDTO.getPage(), queryDTO.getLimit(), queryDTO.getType(), queryDTO.getStatus());
         return Result.success(result);
     }
 
