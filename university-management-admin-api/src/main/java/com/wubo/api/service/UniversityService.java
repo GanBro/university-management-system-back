@@ -2,10 +2,13 @@ package com.wubo.api.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wubo.api.dto.ConsultationDTO;
 import com.wubo.api.dto.UniversityDTO;
 import com.wubo.api.dto.UniversityDetailDTO;
 import com.wubo.api.dto.UniversityExportDTO;
+import com.wubo.api.entity.SatisfactionRating;
 import com.wubo.api.entity.University;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -31,4 +34,19 @@ public interface UniversityService {
     List<String> getAllProvinces();
     // 新增获取招生统计信息的方法
     Map<String, Integer> getAdmissionStats(Integer universityId, Integer year);
+
+    // 获取院校满意度数据
+    Map<String, Object> getSatisfactionData(Integer universityId);
+
+    // 获取专业满意度数据
+    List<Map<String, Object>> getMajorSatisfaction(Integer universityId);
+
+    // 获取专业推荐数据
+    Map<String, Object> getRecommendationData(Integer universityId);
+
+    // 获取咨询列表
+    List<Map<String, Object>> getConsultations(Integer universityId);
+
+    // 提交咨询
+    void submitConsultation(Integer universityId, ConsultationDTO consultationDTO);
 }

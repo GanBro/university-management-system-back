@@ -1,4 +1,3 @@
-// InteractionServiceImpl.java
 package com.wubo.api.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -39,79 +38,47 @@ public class InteractionServiceImpl implements InteractionService {
         // 创建分页对象
         Page<Interaction> pageParam = new Page<>(page, limit);
 
-        // 构建查询条件
+        // 使用 LambdaQueryWrapper 构建查询条件
         LambdaQueryWrapper<Interaction> queryWrapper = new LambdaQueryWrapper<>();
 
-        // 添加查询条件（处理参数类型转换）
+        // 处理各种查询条件
         Object universityIdObj = params.get("universityId");
-        Integer universityId = null;
         if (universityIdObj != null) {
-            if (universityIdObj instanceof Integer) {
-                universityId = (Integer) universityIdObj;
-            } else if (universityIdObj instanceof String) {
-                try {
-                    universityId = Integer.parseInt((String) universityIdObj);
-                } catch (NumberFormatException e) {
-                    // 转换失败时忽略该条件
-                }
-            }
+            queryWrapper.eq(Interaction::getUniversityId, universityIdObj);
         }
 
-        String type = params.get("type") != null ? params.get("type").toString() : null;
-        String status = params.get("status") != null ? params.get("status").toString() : null;
-        String keyword = params.get("keyword") != null ? params.get("keyword").toString() : null;
-
-        Object userIdObj = params.get("userId");
-        Integer userId = null;
-        if (userIdObj != null) {
-            if (userIdObj instanceof Integer) {
-                userId = (Integer) userIdObj;
-            } else if (userIdObj instanceof String) {
-                try {
-                    userId = Integer.parseInt((String) userIdObj);
-                } catch (NumberFormatException e) {
-                    // 转换失败时忽略该条件
-                }
-            }
-        }
-
-        Object isPublicObj = params.get("isPublic");
-        Boolean isPublic = null;
-        if (isPublicObj != null) {
-            if (isPublicObj instanceof Boolean) {
-                isPublic = (Boolean) isPublicObj;
-            } else if (isPublicObj instanceof String) {
-                isPublic = Boolean.parseBoolean((String) isPublicObj);
-            }
-        }
-
-        // 添加查询条件
-        if (universityId != null) {
-            queryWrapper.eq(Interaction::getUniversityId, universityId);
-        }
+        String type = (String) params.get("type");
         if (StringUtils.hasText(type)) {
             queryWrapper.eq(Interaction::getType, type);
         }
+
+        String status = (String) params.get("status");
         if (StringUtils.hasText(status)) {
             queryWrapper.eq(Interaction::getStatus, status);
         }
+
+        Object userIdObj = params.get("userId");
+        if (userIdObj != null) {
+            queryWrapper.eq(Interaction::getUserId, userIdObj);
+        }
+
+        Object isPublicObj = params.get("isPublic");
+        if (isPublicObj != null) {
+            queryWrapper.eq(Interaction::getIsPublic, isPublicObj);
+        }
+
+        String keyword = (String) params.get("keyword");
         if (StringUtils.hasText(keyword)) {
             queryWrapper.and(wrapper -> wrapper
                     .like(Interaction::getTitle, keyword)
                     .or()
                     .like(Interaction::getContent, keyword));
         }
-        if (userId != null) {
-            queryWrapper.eq(Interaction::getUserId, userId);
-        }
-        if (isPublic != null) {
-            queryWrapper.eq(Interaction::getIsPublic, isPublic);
-        }
 
         // 添加排序
-        queryWrapper.orderByDesc(Interaction::getId);
+        queryWrapper.orderByDesc(Interaction::getCreatedAt);
 
-        // 执行查询
+        // 执行分页查询
         Page<Interaction> resultPage = interactionMapper.selectPage(pageParam, queryWrapper);
 
         // 填充关联信息
@@ -179,6 +146,7 @@ public class InteractionServiceImpl implements InteractionService {
     @Transactional
     public void replyInteraction(InteractionReply reply) {
         replyMapper.insert(reply);
+
         // 更新互动状态为已回复
         Interaction interaction = new Interaction();
         interaction.setId(reply.getInteractionId());
@@ -198,7 +166,6 @@ public class InteractionServiceImpl implements InteractionService {
     @Override
     @Transactional
     public void deleteInteraction(Integer id) {
-        // 删除互动时会自动删除相关回复（通过外键级联删除）
         interactionMapper.deleteById(id);
     }
 }

@@ -230,4 +230,70 @@
         FROM university
         WHERE level = #{level}
     </select>
+
+    <!-- 获取院校满意度数据 -->
+    <select id="selectSatisfactionData" resultType="com.wubo.api.entity.SatisfactionRating">
+        SELECT
+            category,
+            rating,
+            rating_count as ratingCount
+        FROM satisfaction_rating
+        WHERE university_id = #{universityId}
+        ORDER BY rating DESC
+    </select>
+
+    <!-- 获取专业满意度数据 -->
+    <select id="selectMajorSatisfaction" resultType="map">
+        SELECT
+            category as name,
+            rating,
+            rating_count as count
+        FROM satisfaction_rating
+        WHERE university_id = #{universityId}
+          AND category like '%专业%'
+        ORDER BY rating DESC
+        LIMIT 5
+    </select>
+
+    <!-- 获取专业推荐人数 -->
+    <select id="selectRecommendationCounts" resultType="map">
+        SELECT
+            major_category as name,
+            recommendation_count as count
+        FROM recommendation_rating
+        WHERE university_id = #{universityId}
+        ORDER BY recommendation_count DESC
+        LIMIT 5
+    </select>
+
+    <!-- 获取专业推荐指数 -->
+    <select id="selectRecommendationIndex" resultType="map">
+        SELECT
+            major_category as name,
+            rating,
+            recommendation_count as count
+        FROM recommendation_rating
+        WHERE university_id = #{universityId}
+        ORDER BY rating DESC, recommendation_count DESC
+        LIMIT 5
+    </select>
+
+    <!-- 获取咨询列表 -->
+    <select id="selectConsultations" resultType="map">
+        SELECT
+            i.id,
+            i.title,
+            i.content,
+            i.user_id,
+            i.status,
+            i.created_at,
+            u.username as user_name
+        FROM interaction i
+                 LEFT JOIN user u ON i.user_id = u.user_id
+        WHERE i.university_id = #{universityId}
+          AND i.type = 'consult'
+          AND i.is_public = 1
+        ORDER BY i.created_at DESC
+        LIMIT 10
+    </select>
 </mapper>

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -188,6 +189,74 @@ public class UniversityController {
         } catch (Exception e) {
             log.error("获取筛选条件失败", e);
             return Result.error("获取筛选条件失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/satisfaction")
+    @Operation(summary = "获取院校满意度", description = "获取院校综合满意度、环境满意度、生活满意度等数据")
+    public Result<Map<String, Object>> getSatisfaction(@PathVariable Integer id) {
+        log.info("获取院校满意度数据, id: {}", id);
+        try {
+            Map<String, Object> satisfactionData = universityService.getSatisfactionData(id);
+            return Result.success(satisfactionData);
+        } catch (Exception e) {
+            log.error("获取院校满意度数据失败", e);
+            return Result.error("获取院校满意度数据失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/major-satisfaction")
+    @Operation(summary = "获取专业满意度", description = "获取院校各专业满意度评分数据")
+    public Result<List<Map<String, Object>>> getMajorSatisfaction(@PathVariable Integer id) {
+        log.info("获取专业满意度数据, id: {}", id);
+        try {
+            List<Map<String, Object>> majorSatisfaction = universityService.getMajorSatisfaction(id);
+            return Result.success(majorSatisfaction);
+        } catch (Exception e) {
+            log.error("获取专业满意度数据失败", e);
+            return Result.error("获取专业满意度数据失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/recommendations")
+    @Operation(summary = "获取专业推荐数据", description = "获取专业推荐人数和推荐指数数据")
+    public Result<Map<String, Object>> getRecommendations(@PathVariable Integer id) {
+        log.info("获取专业推荐数据, id: {}", id);
+        try {
+            Map<String, Object> recommendations = universityService.getRecommendationData(id);
+            return Result.success(recommendations);
+        } catch (Exception e) {
+            log.error("获取专业推荐数据失败", e);
+            return Result.error("获取专业推荐数据失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/consultations")
+    @Operation(summary = "获取咨询列表", description = "获取院校咨询问答列表")
+    public Result<List<Map<String, Object>>> getConsultations(@PathVariable Integer id) {
+        log.info("获取咨询列表, id: {}", id);
+        try {
+            List<Map<String, Object>> consultations = universityService.getConsultations(id);
+            return Result.success(consultations);
+        } catch (Exception e) {
+            log.error("获取咨询列表失败", e);
+            return Result.error("获取咨询列表失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/consultations")
+    @Operation(summary = "提交咨询", description = "提交院校咨询问题")
+    public Result<?> submitConsultation(
+            @PathVariable Integer id,
+            @RequestBody @Valid ConsultationDTO consultationDTO
+    ) {
+        log.info("提交咨询, id: {}, data: {}", id, consultationDTO);
+        try {
+            universityService.submitConsultation(id, consultationDTO);
+            return Result.success();
+        } catch (Exception e) {
+            log.error("提交咨询失败", e);
+            return Result.error("提交咨询失败: " + e.getMessage());
         }
     }
 }

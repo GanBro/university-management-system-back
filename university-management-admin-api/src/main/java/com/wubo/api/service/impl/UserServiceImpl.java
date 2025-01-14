@@ -1,5 +1,6 @@
 package com.wubo.api.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wubo.api.entity.User;
@@ -140,24 +141,26 @@ public class UserServiceImpl implements UserService {
         }
 
         // 检查是否有管理员账号
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("user_id", ids)
-                .eq("role", "admin");
-        Long adminCount = userMapper.selectCount(queryWrapper);
+        LambdaQueryWrapper<User> adminWrapper = new LambdaQueryWrapper<>();
+        adminWrapper.in(User::getUserId, ids)
+                .eq(User::getRole, "admin");
+        Long adminCount = userMapper.selectCount(adminWrapper);
         if (adminCount > 0) {
             throw new RuntimeException("不能删除管理员账号");
         }
 
         // 检查用户是否都存在
-        QueryWrapper<User> existWrapper = new QueryWrapper<>();
-        existWrapper.in("user_id", ids);
+        LambdaQueryWrapper<User> existWrapper = new LambdaQueryWrapper<>();
+        existWrapper.in(User::getUserId, ids);
         Long existingCount = userMapper.selectCount(existWrapper);
         if (existingCount != ids.size()) {
             throw new RuntimeException("部分用户不存在");
         }
 
         // 批量删除用户
-        int result = userMapper.deleteBatchIds(ids);
+        LambdaQueryWrapper<User> deleteWrapper = new LambdaQueryWrapper<>();
+        deleteWrapper.in(User::getUserId, ids);
+        int result = userMapper.delete(deleteWrapper);
         if (result != ids.size()) {
             throw new RuntimeException("批量删除用户失败");
         }

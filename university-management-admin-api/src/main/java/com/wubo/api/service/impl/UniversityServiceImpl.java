@@ -2,11 +2,15 @@ package com.wubo.api.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wubo.api.dto.ConsultationDTO;
 import com.wubo.api.dto.UniversityDTO;
 import com.wubo.api.dto.UniversityDetailDTO;
 import com.wubo.api.dto.UniversityExportDTO;
+import com.wubo.api.entity.Interaction;
+import com.wubo.api.entity.SatisfactionRating;
 import com.wubo.api.entity.University;
 import com.wubo.api.entity.UniversityFeature;
+import com.wubo.api.mapper.InteractionMapper;
 import com.wubo.api.mapper.UniversityFeatureMapper;
 import com.wubo.api.mapper.UniversityMapper;
 import com.wubo.api.service.UniversityService;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,6 +34,9 @@ public class UniversityServiceImpl implements UniversityService {
 
     @Autowired
     private UniversityFeatureMapper universityFeatureMapper;
+
+    @Autowired
+    private InteractionMapper interactionMapper;
 
     @Override
     public Page<University> getUniversityList(Integer page, Integer limit, Map<String, Object> params) {
@@ -61,9 +69,10 @@ public class UniversityServiceImpl implements UniversityService {
         queryWrapper.orderByDesc(University::getId);
         Page<University> result = universityMapper.selectPage(pageParam, queryWrapper);
 
-        // 确保设置正确的总记录数
-        result.setTotal(result.getRecords().size());
-        result.setPages((result.getTotal() + limit - 1) / limit);
+        // 更新分页信息，使用新的API
+        long total = result.getRecords().size();
+        result.setTotal(total);
+        // 不再需要手动设置pages，Page对象会自动计算
 
         return result;
     }
@@ -131,7 +140,10 @@ public class UniversityServiceImpl implements UniversityService {
     @Override
     @Transactional
     public void batchDeleteUniversities(List<Integer> ids) {
-        universityMapper.deleteBatchIds(ids);
+        // 使用新的批量删除API
+        LambdaQueryWrapper<University> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(University::getId, ids);
+        universityMapper.delete(queryWrapper);
     }
 
     @Override
@@ -195,5 +207,86 @@ public class UniversityServiceImpl implements UniversityService {
     @Override
     public Map<String, Integer> getAdmissionStats(Integer universityId, Integer year) {
         return universityMapper.selectAdmissionStats(universityId, year);
+    }
+
+    @Override
+    public Map<String, Object> getSatisfactionData(Integer universityId) {
+        List<SatisfactionRating> satisfactionList = universityMapper.selectSatisfactionData(universityId);
+        Map<String, Object> result = new HashMap<>();
+
+        // 处理综合满意度数据
+        double overall = 0.0;
+        int overallCount = 0;
+
+        // 处理环境满意度数据
+        double environment = 0.0;
+        int environmentCount = 0;
+
+        // 处理生活满意度数据
+        double life = 0.0;
+        int lifeCount = 0;
+
+        for (SatisfactionRating rating : satisfactionList) {
+            switch(rating.getCategory()) {
+                case "综合评价":
+                    overall = rating.getRating();
+                    overallCount = rating.getRatingCount();
+                    break;
+                case "环境":
+                    environment = rating.getRating();
+                    environmentCount = rating.getRatingCount();
+                    break;
+                case "生活":
+                    life = rating.getRating();
+                    lifeCount = rating.getRatingCount();
+                    break;
+            }
+        }
+
+        result.put("overall", overall);
+        result.put("overall_count", overallCount);
+        result.put("environment", environment);
+        result.put("environment_count", environmentCount);
+        result.put("life", life);
+        result.put("life_count", lifeCount);
+
+        return result;
+    }
+
+    @Override
+    public List<Map<String, Object>> getMajorSatisfaction(Integer universityId) {
+        return universityMapper.selectMajorSatisfaction(universityId);
+    }
+
+    @Override
+    public Map<String, Object> getRecommendationData(Integer universityId) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("counts", universityMapper.selectRecommendationCounts(universityId));
+        result.put("index", universityMapper.selectRecommendationIndex(universityId));
+        return result;
+    }
+
+    @Override
+    public List<Map<String, Object>> getConsultations(Integer universityId) {
+        return universityMapper.selectConsultations(universityId);
+    }
+
+    @Override
+    @Transactional
+    public void submitConsultation(Integer universityId, ConsultationDTO consultationDTO) {
+        // 封装交互实体
+        Interaction interaction = new Interaction();
+        interaction.setUniversityId(universityId);
+        interaction.setUserId(consultationDTO.getUserId());
+        interaction.setType("consult");
+        interaction.setTitle(consultationDTO.getTitle());
+        interaction.setContent(consultationDTO.getContent());
+        interaction.setStatus("pending");
+        interaction.setIsPublic(consultationDTO.getIsPublic());
+
+        // 保存交互记录
+        interactionMapper.insert(interaction);
+
+        // 如果需要,这里可以添加发送通知等其他逻辑
     }
 }
