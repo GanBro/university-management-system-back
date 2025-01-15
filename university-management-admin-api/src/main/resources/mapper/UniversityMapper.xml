@@ -296,4 +296,12 @@
         ORDER BY i.created_at DESC
         LIMIT 10
     </select>
+
+    <!-- 新增：查询所有主管部门 -->
+    <select id="selectAllAdminDepartments" resultType="string">
+        SELECT DISTINCT admin_department
+        FROM university
+        WHERE admin_department IS NOT NULL
+        ORDER BY admin_department
+    </select>
 </mapper>

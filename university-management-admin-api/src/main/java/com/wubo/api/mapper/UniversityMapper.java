@@ -26,22 +26,18 @@ public interface UniversityMapper extends BaseMapper<University> {
 
     List<String> selectAllProvinces();
 
-    // 删除了 @Select 注解，使用 XML 中的实现
+    List<String> selectAllAdminDepartments();
+
     Map<String, Integer> selectAdmissionStats(@Param("universityId") Integer universityId,
                                               @Param("year") Integer year);
 
-    // 获取院校满意度数据
     List<SatisfactionRating> selectSatisfactionData(@Param("universityId") Integer universityId);
 
-    // 获取专业满意度数据
     List<Map<String, Object>> selectMajorSatisfaction(@Param("universityId") Integer universityId);
 
-    // 获取专业推荐人数
     List<Map<String, Object>> selectRecommendationCounts(@Param("universityId") Integer universityId);
 
-    // 获取专业推荐指数
     List<Map<String, Object>> selectRecommendationIndex(@Param("universityId") Integer universityId);
 
-    // 获取咨询列表
     List<Map<String, Object>> selectConsultations(@Param("universityId") Integer universityId);
 }
