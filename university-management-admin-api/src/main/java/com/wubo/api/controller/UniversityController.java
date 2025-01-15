@@ -244,15 +244,15 @@ public class UniversityController {
         }
     }
 
-    @PostMapping("/{id}/consultations")
+    @PostMapping("/{universityId}/consultations")
     @Operation(summary = "提交咨询", description = "提交院校咨询问题")
     public Result<?> submitConsultation(
-            @PathVariable Integer id,
+            @PathVariable Integer universityId,
             @RequestBody @Valid ConsultationDTO consultationDTO
     ) {
-        log.info("提交咨询, id: {}, data: {}", id, consultationDTO);
+        log.info("提交咨询, universityId: {}, data: {}", universityId, consultationDTO);
         try {
-            universityService.submitConsultation(id, consultationDTO);
+            universityService.submitConsultation(universityId, consultationDTO);
             return Result.success();
         } catch (Exception e) {
             log.error("提交咨询失败", e);
