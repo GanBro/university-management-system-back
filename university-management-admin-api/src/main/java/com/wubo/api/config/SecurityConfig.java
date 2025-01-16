@@ -16,7 +16,7 @@ import java.util.Collections;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
+/*    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -34,6 +34,18 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()  // 确保登录接口可访问
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
+                );
+
+        return http.build();
+    }*/
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())  // 禁用 CSRF
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // 启用 CORS
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()  // 允许所有请求
                 );
 
         return http.build();
