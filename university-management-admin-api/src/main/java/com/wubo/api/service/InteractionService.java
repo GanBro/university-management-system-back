@@ -12,5 +12,6 @@ public interface InteractionService {
     void createInteraction(Interaction interaction);
     void replyInteraction(InteractionReply reply);
     void closeInteraction(Integer id);
+    void reopenInteraction(Integer id);
     void deleteInteraction(Integer id);
 }

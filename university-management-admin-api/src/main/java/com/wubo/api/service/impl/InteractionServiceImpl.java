@@ -2,6 +2,7 @@ package com.wubo.api.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wubo.api.entity.Interaction;
 import com.wubo.api.entity.InteractionReply;
 import com.wubo.api.mapper.InteractionMapper;
@@ -19,7 +20,7 @@ import java.util.Map;
 
 @Service
 @Transactional
-public class InteractionServiceImpl implements InteractionService {
+public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Interaction> implements InteractionService {
 
     @Autowired
     private InteractionMapper interactionMapper;
@@ -161,6 +162,18 @@ public class InteractionServiceImpl implements InteractionService {
         interaction.setId(id);
         interaction.setStatus("closed");
         interactionMapper.updateById(interaction);
+    }
+
+    @Override
+    public void reopenInteraction(Integer id) {
+        Interaction interaction = this.getById(id);
+        if (interaction == null) {
+            throw new RuntimeException("互动不存在");
+        }
+
+        // 将状态更新为待处理
+        interaction.setStatus("pending");
+        this.updateById(interaction);
     }
 
     @Override

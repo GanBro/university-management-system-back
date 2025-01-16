@@ -65,6 +65,14 @@ public class InteractionController {
         return Result.success(null);
     }
 
+    @Operation(summary = "重新开启互动")
+    @PostMapping("/{id}/reopen")
+    public Result<?> reopen(@PathVariable Integer id) {
+        log.info("重新开启互动, id: {}", id);
+        interactionService.reopenInteraction(id);
+        return Result.success(null);
+    }
+
     @Operation(summary = "删除互动")
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Integer id) {
