@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -283,6 +284,10 @@ public class UniversityServiceImpl implements UniversityService {
         interaction.setContent(consultationDTO.getContent());
         interaction.setStatus("pending");
         interaction.setIsPublic(consultationDTO.getIsPublic());
+
+        // 手动设置时间
+        interaction.setCreatedAt(LocalDateTime.now()); // 设置创建时间
+        interaction.setUpdatedAt(LocalDateTime.now()); // 设置更新时间
 
         // 保存交互记录
         interactionMapper.insert(interaction);
