@@ -13,7 +13,6 @@ public class Interaction {
 
     private Integer universityId;
     private Integer userId;
-    private String type;
     private String title;
     private String content;
     private String status;

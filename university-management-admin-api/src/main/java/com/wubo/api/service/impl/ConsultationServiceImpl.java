@@ -36,9 +36,6 @@ public class ConsultationServiceImpl implements ConsultationService {
         Page<Interaction> pageParam = new Page<>(page, limit);
         LambdaQueryWrapper<Interaction> wrapper = new LambdaQueryWrapper<>();
 
-        // 设置查询条件
-        wrapper.eq(Interaction::getType, "consult"); // 只查询咨询类型
-
         // 筛选条件
         if (params != null) {
             // 大学ID
@@ -182,7 +179,6 @@ public class ConsultationServiceImpl implements ConsultationService {
         Interaction interaction = new Interaction();
         interaction.setUniversityId(consultationDTO.getUniversityId());
         interaction.setUserId(consultationDTO.getUserId());
-        interaction.setType("consult");
         interaction.setTitle(consultationDTO.getTitle());
         interaction.setContent(consultationDTO.getContent());
         interaction.setStatus("pending");
@@ -214,7 +210,6 @@ public class ConsultationServiceImpl implements ConsultationService {
     public List<Map<String, Object>> getRelatedConsultations(Integer universityId, Integer currentId) {
         LambdaQueryWrapper<Interaction> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Interaction::getUniversityId, universityId)
-                .eq(Interaction::getType, "consult")
                 .eq(Interaction::getIsPublic, true)
                 .ne(Interaction::getId, currentId)
                 .orderByDesc(Interaction::getCreatedAt)
@@ -237,8 +232,7 @@ public class ConsultationServiceImpl implements ConsultationService {
     @Override
     public Map<String, Object> getConsultationStats(Integer universityId) {
         LambdaQueryWrapper<Interaction> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Interaction::getUniversityId, universityId)
-                .eq(Interaction::getType, "consult");
+        wrapper.eq(Interaction::getUniversityId, universityId);
 
         Map<String, Object> stats = new HashMap<>();
 
@@ -249,7 +243,6 @@ public class ConsultationServiceImpl implements ConsultationService {
         // 待回复数量
         wrapper.clear();
         wrapper.eq(Interaction::getUniversityId, universityId)
-                .eq(Interaction::getType, "consult")
                 .eq(Interaction::getStatus, "pending");
         long pending = interactionMapper.selectCount(wrapper);
         stats.put("pending", pending);

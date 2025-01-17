@@ -48,11 +48,6 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
             queryWrapper.eq(Interaction::getUniversityId, universityIdObj);
         }
 
-        String type = (String) params.get("type");
-        if (StringUtils.hasText(type)) {
-            queryWrapper.eq(Interaction::getType, type);
-        }
-
         String status = (String) params.get("status");
         if (StringUtils.hasText(status)) {
             queryWrapper.eq(Interaction::getStatus, status);

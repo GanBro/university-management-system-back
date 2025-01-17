@@ -279,7 +279,6 @@ public class UniversityServiceImpl implements UniversityService {
         Interaction interaction = new Interaction();
         interaction.setUniversityId(universityId);
         interaction.setUserId(consultationDTO.getUserId());
-        interaction.setType("consult");
         interaction.setTitle(consultationDTO.getTitle());
         interaction.setContent(consultationDTO.getContent());
         interaction.setStatus("pending");

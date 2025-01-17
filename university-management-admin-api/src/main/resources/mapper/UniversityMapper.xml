@@ -291,7 +291,6 @@
         FROM interaction i
                  LEFT JOIN user u ON i.user_id = u.user_id
         WHERE i.university_id = #{universityId}
-          AND i.type = 'consult'
           AND i.is_public = 1
         ORDER BY i.created_at DESC
         LIMIT 10

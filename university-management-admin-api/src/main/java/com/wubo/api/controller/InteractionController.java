@@ -1,4 +1,3 @@
-// InteractionController.java
 package com.wubo.api.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
