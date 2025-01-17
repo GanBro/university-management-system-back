@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -175,5 +177,66 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
     @Transactional
     public void deleteInteraction(Integer id) {
         interactionMapper.deleteById(id);
+    }
+
+    @Override
+    public Map<String, Object> getInteractionStats(Integer universityId) {
+        LambdaQueryWrapper<Interaction> queryWrapper = new LambdaQueryWrapper<>();
+        if (universityId != null) {
+            queryWrapper.eq(Interaction::getUniversityId, universityId);
+        }
+
+        // 获取总数
+        long total = count(queryWrapper);
+
+        // 获取待处理数量
+        long pending = count(queryWrapper.clone().eq(Interaction::getStatus, "pending"));
+
+        // 获取已回复数量
+        long replied = count(queryWrapper.clone().eq(Interaction::getStatus, "replied"));
+
+        // 计算平均响应时间（小时）
+        double avgResponseTime = calculateAverageResponseTime(universityId);
+
+        // 计算回复率
+        double responseRate = total > 0 ? (replied * 100.0 / total) : 0;
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("total", total);
+        stats.put("pending", pending);
+        stats.put("avgResponseTime", Math.round(avgResponseTime));
+        stats.put("responseRate", Math.round(responseRate));
+
+        return stats;
+    }
+
+    private double calculateAverageResponseTime(Integer universityId) {
+        // 查询所有有回复时间的互动
+        LambdaQueryWrapper<Interaction> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Interaction::getStatus, "replied");
+        if (universityId != null) {
+            queryWrapper.eq(Interaction::getUniversityId, universityId);
+        }
+
+        List<Interaction> interactions = list(queryWrapper);
+        if (interactions.isEmpty()) {
+            return 0;
+        }
+
+        long totalHours = 0;
+        int count = 0;
+
+        for (Interaction interaction : interactions) {
+            if (interaction.getCreatedAt() != null && interaction.getUpdatedAt() != null) {
+                long diffInHours = ChronoUnit.HOURS.between(
+                        interaction.getCreatedAt(),
+                        interaction.getUpdatedAt()
+                );
+                totalHours += diffInHours;
+                count++;
+            }
+        }
+
+        return count > 0 ? (double) totalHours / count : 0;
     }
 }

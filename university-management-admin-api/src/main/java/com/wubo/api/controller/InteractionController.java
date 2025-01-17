@@ -79,4 +79,11 @@ public class InteractionController {
         interactionService.deleteInteraction(id);
         return Result.success(null);
     }
+
+    @GetMapping("/stats")
+    @Operation(summary = "获取互动统计数据")
+    public Result<Map<String, Object>> getStats(@RequestParam(required = false) Integer universityId) {
+        log.info("获取互动统计数据, universityId: {}", universityId);
+        return Result.success(interactionService.getInteractionStats(universityId));
+    }
 }

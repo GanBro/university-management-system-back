@@ -14,4 +14,5 @@ public interface InteractionService {
     void closeInteraction(Integer id);
     void reopenInteraction(Integer id);
     void deleteInteraction(Integer id);
+    Map<String, Object> getInteractionStats(Integer universityId);
 }
