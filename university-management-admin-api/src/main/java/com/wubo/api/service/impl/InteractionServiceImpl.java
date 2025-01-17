@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
@@ -137,18 +138,21 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
     public void createInteraction(Interaction interaction) {
         interaction.setStatus("pending");
         interaction.setViewCount(0);
+        interaction.setCreatedAt(LocalDateTime.now());  // 设置创建时间
+        interaction.setUpdatedAt(LocalDateTime.now());  // 设置更新时间
         interactionMapper.insert(interaction);
     }
 
     @Override
     @Transactional
     public void replyInteraction(InteractionReply reply) {
+        reply.setCreatedAt(LocalDateTime.now());
         replyMapper.insert(reply);
-
         // 更新互动状态为已回复
         Interaction interaction = new Interaction();
         interaction.setId(reply.getInteractionId());
         interaction.setStatus("replied");
+        interaction.setUpdatedAt(LocalDateTime.now());
         interactionMapper.updateById(interaction);
     }
 
@@ -158,6 +162,7 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
         Interaction interaction = new Interaction();
         interaction.setId(id);
         interaction.setStatus("closed");
+        interaction.setUpdatedAt(LocalDateTime.now());
         interactionMapper.updateById(interaction);
     }
 
@@ -167,9 +172,13 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
         if (interaction == null) {
             throw new RuntimeException("互动不存在");
         }
-
+        // 检查当前状态
+        if (!"closed".equals(interaction.getStatus())) {
+            throw new RuntimeException("只有已关闭的互动才能重新开启");
+        }
         // 将状态更新为待处理
         interaction.setStatus("pending");
+        interaction.setUpdatedAt(LocalDateTime.now());
         this.updateById(interaction);
     }
 
