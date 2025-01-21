@@ -1,6 +1,7 @@
 package com.wubo.api.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wubo.api.dto.InteractionDetailDTO;
 import com.wubo.api.dto.Result;
 import com.wubo.api.entity.Interaction;
 import com.wubo.api.entity.InteractionReply;
@@ -32,9 +33,15 @@ public class InteractionController {
         return Result.success(interactionService.getInteractionList(page, limit, params));
     }
 
-    @Operation(summary = "获取互动详情")
+//    @Operation(summary = "获取互动详情")
+//    @GetMapping("/{id}")
+//    public Result<Interaction> detail(@PathVariable Integer id) {
+//        log.info("获取互动详情, id: {}", id);
+//        return Result.success(interactionService.getInteractionDetail(id));
+//    }
     @GetMapping("/{id}")
-    public Result<Interaction> detail(@PathVariable Integer id) {
+    @Operation(summary = "获取互动详情")
+    public Result<InteractionDetailDTO> detail(@PathVariable Integer id) {
         log.info("获取互动详情, id: {}", id);
         return Result.success(interactionService.getInteractionDetail(id));
     }

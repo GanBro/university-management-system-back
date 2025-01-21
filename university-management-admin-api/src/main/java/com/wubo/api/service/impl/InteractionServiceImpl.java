@@ -3,16 +3,22 @@ package com.wubo.api.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wubo.api.dto.InteractionDetailDTO;
+import com.wubo.api.dto.InteractionReplyDTO;
 import com.wubo.api.entity.Interaction;
 import com.wubo.api.entity.InteractionReply;
+import com.wubo.api.entity.University;
+import com.wubo.api.entity.User;
 import com.wubo.api.mapper.InteractionMapper;
 import com.wubo.api.mapper.InteractionReplyMapper;
 import com.wubo.api.mapper.UniversityMapper;
 import com.wubo.api.mapper.UserMapper;
 import com.wubo.api.service.InteractionService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -20,6 +26,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -86,7 +93,7 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
         return resultPage;
     }
 
-    @Override
+    /*@Override
     public Interaction getInteractionDetail(Integer id) {
         Interaction interaction = interactionMapper.selectById(id);
         if (interaction != null) {
@@ -98,6 +105,61 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
             fillAssociatedInfo(interaction);
         }
         return interaction;
+    }*/
+    @Override
+    public InteractionDetailDTO getInteractionDetail(Integer id) {
+        // 获取互动信息
+        Interaction interaction = getById(id);
+        if (interaction == null) {
+            return null;
+        }
+
+        // 构造 DTO
+        InteractionDetailDTO dto = new InteractionDetailDTO();
+        BeanUtils.copyProperties(interaction, dto);
+
+        // 设置用户信息
+        User user = userMapper.selectById(interaction.getUserId());
+        if (user != null) {
+            dto.setUserName(user.getUsername());
+            dto.setAvatar(user.getAvatar());
+        }
+
+        // 设置大学信息
+        University university = universityMapper.selectById(interaction.getUniversityId());
+        if (university != null) {
+            dto.setUniversityName(university.getName());
+        }
+
+        // 使用 MyBatis-Plus 的条件构造器查询回复列表
+        LambdaQueryWrapper<InteractionReply> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(InteractionReply::getInteractionId, id)
+                .orderByAsc(InteractionReply::getCreatedAt);
+        List<InteractionReply> replies = replyMapper.selectList(queryWrapper);
+
+        if (!CollectionUtils.isEmpty(replies)) {
+            List<InteractionReplyDTO> replyDTOs = replies.stream().map(reply -> {
+                InteractionReplyDTO replyDTO = new InteractionReplyDTO();
+                BeanUtils.copyProperties(reply, replyDTO);
+
+                // 设置回复用户信息
+                User replyUser = userMapper.selectById(reply.getUserId());
+                if (replyUser != null) {
+                    replyDTO.setUserName(replyUser.getUsername());
+                    replyDTO.setAvatar(replyUser.getAvatar());
+                }
+
+                return replyDTO;
+            }).collect(Collectors.toList());
+
+            dto.setReplies(replyDTOs);
+        }
+
+        // 增加浏览次数
+        interaction.setViewCount(interaction.getViewCount() + 1);
+        updateById(interaction);
+
+        return dto;
     }
 
     private void fillAssociatedInfo(Interaction interaction) {
