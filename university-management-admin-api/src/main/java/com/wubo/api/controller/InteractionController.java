@@ -33,12 +33,6 @@ public class InteractionController {
         return Result.success(interactionService.getInteractionList(page, limit, params));
     }
 
-//    @Operation(summary = "获取互动详情")
-//    @GetMapping("/{id}")
-//    public Result<Interaction> detail(@PathVariable Integer id) {
-//        log.info("获取互动详情, id: {}", id);
-//        return Result.success(interactionService.getInteractionDetail(id));
-//    }
     @GetMapping("/{id}")
     @Operation(summary = "获取互动详情")
     public Result<InteractionDetailDTO> detail(@PathVariable Integer id) {
