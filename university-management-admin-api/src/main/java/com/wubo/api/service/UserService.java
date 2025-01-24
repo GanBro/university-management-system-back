@@ -1,6 +1,7 @@
 package com.wubo.api.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wubo.api.entity.UpdatePasswordRequest;
 import com.wubo.api.entity.User;
 
 import java.util.List;
@@ -58,4 +59,8 @@ public interface UserService {
     User getUserByUsername(String username);
 
     User getUserById(Integer userId);
+
+    boolean updateProfile(User user);
+
+    boolean updatePassword(UpdatePasswordRequest request);
 }

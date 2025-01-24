@@ -3,6 +3,7 @@ package com.wubo.api.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wubo.api.dto.Result;
+import com.wubo.api.entity.UpdatePasswordRequest;
 import com.wubo.api.entity.User;
 import com.wubo.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -201,6 +202,48 @@ public class UserController {
         } catch (Exception e) {
             log.error("获取用户详情失败, userId: {}", userId, e);
             return Result.error(500, "获取用户详情失败: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "更新用户个人信息", description = "更新用户的个人信息，如邮箱等")
+    @PutMapping("/users/profile")
+    public Result<?> updateProfile(@RequestBody User user) {
+        log.info("更新用户个人信息请求: {}", user.getUserId());
+        if (user.getUserId() == null) {
+            log.warn("用户ID不能为空");
+            return Result.error(400, "用户ID不能为空");
+        }
+        try {
+            boolean success = userService.updateProfile(user);
+            if (success) {
+                log.info("用户个人信息更新成功: {}", user.getUserId());
+                return Result.success("个人信息更新成功");
+            } else {
+                log.warn("用户个人信息更新失败: {}", user.getUserId());
+                return Result.error(500, "个人信息更新失败");
+            }
+        } catch (Exception e) {
+            log.error("更新用户个人信息时发生错误: {}", user.getUserId(), e);
+            return Result.error(500, "更新个人信息时发生错误: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "修改密码", description = "修改用户密码")
+    @PutMapping("/users/updatePassword")
+    public Result<?> updatePassword(@RequestBody UpdatePasswordRequest request) {
+        log.info("修改密码请求: {}", request.getUserId());
+        try {
+            boolean success = userService.updatePassword(request);
+            if (success) {
+                log.info("密码修改成功: {}", request.getUserId());
+                return Result.success("密码修改成功");
+            } else {
+                log.warn("密码修改失败: {}", request.getUserId());
+                return Result.error(500, "密码修改失败");
+            }
+        } catch (Exception e) {
+            log.error("修改密码时发生错误: {}", request.getUserId(), e);
+            return Result.error(500, "修改密码时发生错误: " + e.getMessage());
         }
     }
 }

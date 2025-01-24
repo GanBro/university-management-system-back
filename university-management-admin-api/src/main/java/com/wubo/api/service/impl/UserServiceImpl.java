@@ -3,6 +3,7 @@ package com.wubo.api.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wubo.api.entity.UpdatePasswordRequest;
 import com.wubo.api.entity.User;
 import com.wubo.api.mapper.UserMapper;
 import com.wubo.api.service.UserService;
@@ -195,5 +196,54 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Integer userId) {
         return userMapper.selectById(userId);
+    }
+
+    @Override
+    @Transactional
+    public boolean updateProfile(User user) {
+        if (user.getUserId() == null) {
+            throw new IllegalArgumentException("用户ID不能为空");
+        }
+
+        // 只允许更新邮箱和头像
+        User existingUser = userMapper.selectById(user.getUserId());
+        if (existingUser == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        if (StringUtils.hasText(user.getEmail())) {
+            existingUser.setEmail(user.getEmail());
+        }
+
+        if (StringUtils.hasText(user.getAvatar())) {
+            existingUser.setAvatar(user.getAvatar());
+        }
+
+        existingUser.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        return userMapper.updateById(existingUser) > 0;
+    }
+
+    @Override
+    @Transactional
+    public boolean updatePassword(UpdatePasswordRequest request) {
+        if (request.getUserId() == null) {
+            throw new IllegalArgumentException("用户ID不能为空");
+        }
+
+        // 获取当前用户
+        User user = userMapper.selectById(request.getUserId());
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        // 验证旧密码
+        if (!user.getPassword().equals(request.getOldPassword())) {
+            throw new RuntimeException("当前密码错误");
+        }
+
+        // 更新密码
+        user.setPassword(request.getNewPassword());
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        return userMapper.updateById(user) > 0;
     }
 }
