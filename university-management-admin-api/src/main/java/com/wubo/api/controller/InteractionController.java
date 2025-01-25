@@ -43,6 +43,9 @@ public class InteractionController {
     @Operation(summary = "创建互动")
     @PostMapping
     public Result<?> create(@RequestBody Interaction interaction) {
+        if (interaction.getUniversityId() == null) {
+            return Result.error(400, "必须关联高校");
+        }
         log.info("创建互动: {}", interaction);
         interactionService.createInteraction(interaction);
         return Result.success(null);

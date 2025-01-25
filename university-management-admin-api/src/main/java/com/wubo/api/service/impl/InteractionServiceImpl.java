@@ -205,17 +205,35 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
         interactionMapper.insert(interaction);
     }
 
+//    @Override
+//    @Transactional
+//    public void replyInteraction(InteractionReply reply) {
+//        reply.setCreatedAt(LocalDateTime.now());
+//        replyMapper.insert(reply);
+//        // 更新互动状态为已回复
+//        Interaction interaction = new Interaction();
+//        interaction.setId(reply.getInteractionId());
+//        interaction.setStatus("replied");
+//        interaction.setUpdatedAt(LocalDateTime.now());
+//        interactionMapper.updateById(interaction);
+//    }
     @Override
     @Transactional
     public void replyInteraction(InteractionReply reply) {
         reply.setCreatedAt(LocalDateTime.now());
         replyMapper.insert(reply);
-        // 更新互动状态为已回复
-        Interaction interaction = new Interaction();
-        interaction.setId(reply.getInteractionId());
-        interaction.setStatus("replied");
-        interaction.setUpdatedAt(LocalDateTime.now());
-        interactionMapper.updateById(interaction);
+
+        // 获取回复者角色
+        User replyUser = userMapper.selectById(reply.getUserId());
+
+        // 仅管理员回复时更新状态
+        if ("admin".equals(replyUser.getRole())) {
+            Interaction interaction = new Interaction();
+            interaction.setId(reply.getInteractionId());
+            interaction.setStatus("replied");
+            interaction.setUpdatedAt(LocalDateTime.now());
+            interactionMapper.updateById(interaction);
+        }
     }
 
     @Override
