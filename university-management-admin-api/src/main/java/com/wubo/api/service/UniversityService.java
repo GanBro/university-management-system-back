@@ -49,4 +49,6 @@ public interface UniversityService {
 
     // 提交咨询
     void submitConsultation(Integer universityId, ConsultationDTO consultationDTO);
+
+    List<Map<String, Object>> searchUniversities(String keyword, int limit);
 }

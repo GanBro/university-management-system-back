@@ -259,4 +259,14 @@ public class UniversityController {
             return Result.error("提交咨询失败: " + e.getMessage());
         }
     }
+
+    @GetMapping("/search")
+    @Operation(summary = "高校搜索")
+    public Result<List<Map<String, Object>>> searchUniversities(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "10") int limit) {
+
+        List<Map<String, Object>> universities = universityService.searchUniversities(keyword, limit);
+        return Result.success(universities);
+    }
 }

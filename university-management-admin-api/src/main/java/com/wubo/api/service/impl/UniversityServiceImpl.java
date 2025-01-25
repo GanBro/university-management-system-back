@@ -1,6 +1,7 @@
 package com.wubo.api.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wubo.api.dto.ConsultationDTO;
 import com.wubo.api.dto.UniversityDTO;
@@ -292,5 +293,16 @@ public class UniversityServiceImpl implements UniversityService {
         interactionMapper.insert(interaction);
 
         // 如果需要,这里可以添加发送通知等其他逻辑
+    }
+
+    @Override
+    public List<Map<String, Object>> searchUniversities(String keyword, int limit) {
+        return universityMapper.selectMaps(
+                new QueryWrapper<University>()
+                        .select("id", "name")
+                        .like(StringUtils.hasText(keyword), "name", keyword)
+                        .orderByAsc("name")
+                        .last("LIMIT " + limit)
+        );
     }
 }

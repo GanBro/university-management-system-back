@@ -51,6 +51,23 @@ public class InteractionController {
         return Result.success(null);
     }
 
+    /*
+    @PostMapping
+public Result<?> create(@RequestBody Interaction interaction) {
+    // 校验高校ID是否存在
+    if (interaction.getUniversityId() == null) {
+        return Result.error(400, "必须关联高校");
+    }
+    // 校验高校是否存在
+    University university = universityMapper.selectById(interaction.getUniversityId());
+    if (university == null) {
+        return Result.error(400, "关联的高校不存在");
+    }
+    interactionService.createInteraction(interaction);
+    return Result.success(null);
+}
+     */
+
     @Operation(summary = "回复互动")
     @PostMapping("/{id}/reply")
     public Result<?> reply(@PathVariable Integer id, @RequestBody InteractionReply reply) {
