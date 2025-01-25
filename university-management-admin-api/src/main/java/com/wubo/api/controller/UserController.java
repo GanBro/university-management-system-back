@@ -3,6 +3,7 @@ package com.wubo.api.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wubo.api.dto.Result;
+import com.wubo.api.entity.University;
 import com.wubo.api.entity.UpdatePasswordRequest;
 import com.wubo.api.entity.User;
 import com.wubo.api.service.UserService;
@@ -244,6 +245,39 @@ public class UserController {
         } catch (Exception e) {
             log.error("修改密码时发生错误: {}", request.getUserId(), e);
             return Result.error(500, "修改密码时发生错误: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/users/{userId}/followed-universities")
+    @Operation(summary = "获取已关注高校")
+    public Result<List<University>> getFollowedUniversities(@PathVariable Integer userId) {
+        try {
+            List<University> universities = userService.getFollowedUniversities(userId);
+            return Result.success(universities);
+        } catch (Exception e) {
+            return Result.error("获取已关注高校失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/users/follow")
+    @Operation(summary = "关注高校")
+    public Result<?> followUniversity(@RequestBody Map<String, Integer> data) {
+        try {
+            userService.followUniversity(data.get("userId"), data.get("universityId"));
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error("关注失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/users/unfollow")
+    @Operation(summary = "取消关注")
+    public Result<?> unfollowUniversity(@RequestBody Map<String, Integer> data) {
+        try {
+            userService.unfollowUniversity(data.get("userId"), data.get("universityId"));
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error("取消关注失败: " + e.getMessage());
         }
     }
 }

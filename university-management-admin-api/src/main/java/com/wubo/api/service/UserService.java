@@ -1,6 +1,7 @@
 package com.wubo.api.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wubo.api.entity.University;
 import com.wubo.api.entity.UpdatePasswordRequest;
 import com.wubo.api.entity.User;
 
@@ -63,4 +64,10 @@ public interface UserService {
     boolean updateProfile(User user);
 
     boolean updatePassword(UpdatePasswordRequest request);
+
+    void followUniversity(Integer userId, Integer universityId);
+
+    void unfollowUniversity(Integer userId, Integer universityId);
+
+    List<University> getFollowedUniversities(Integer userId);
 }

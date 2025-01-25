@@ -3,9 +3,13 @@ package com.wubo.api.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wubo.api.entity.University;
 import com.wubo.api.entity.UpdatePasswordRequest;
 import com.wubo.api.entity.User;
+import com.wubo.api.entity.UserUniversityFollow;
+import com.wubo.api.mapper.UniversityMapper;
 import com.wubo.api.mapper.UserMapper;
+import com.wubo.api.mapper.UserUniversityFollowMapper;
 import com.wubo.api.service.UserService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -13,14 +17,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Transactional
 @Service
 public class UserServiceImpl implements UserService {
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private UserUniversityFollowMapper followMapper;
+    @Resource
+    private UniversityMapper universityMapper;
 
     @Override
     public User login(User user) {
@@ -245,5 +256,47 @@ public class UserServiceImpl implements UserService {
         user.setPassword(request.getNewPassword());
         user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         return userMapper.updateById(user) > 0;
+    }
+
+    @Override
+    public void followUniversity(Integer userId, Integer universityId) {
+        LambdaQueryWrapper<UserUniversityFollow> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserUniversityFollow::getUserId, userId)
+                .eq(UserUniversityFollow::getUniversityId, universityId);
+
+        if(followMapper.selectCount(wrapper) > 0) {
+            throw new RuntimeException("已关注该高校");
+        }
+
+        UserUniversityFollow follow = new UserUniversityFollow();
+        follow.setUserId(userId);
+        follow.setUniversityId(universityId);
+        follow.setCreatedAt(LocalDateTime.now());
+        followMapper.insert(follow);
+    }
+
+    @Override
+    public void unfollowUniversity(Integer userId, Integer universityId) {
+        LambdaQueryWrapper<UserUniversityFollow> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserUniversityFollow::getUserId, userId)
+                .eq(UserUniversityFollow::getUniversityId, universityId);
+        followMapper.delete(wrapper);
+    }
+
+    @Override
+    public List<University> getFollowedUniversities(Integer userId) {
+        LambdaQueryWrapper<UserUniversityFollow> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserUniversityFollow::getUserId, userId);
+        List<UserUniversityFollow> follows = followMapper.selectList(wrapper);
+
+        if(follows.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Integer> ids = follows.stream()
+                .map(UserUniversityFollow::getUniversityId)
+                .collect(Collectors.toList());
+
+        return universityMapper.selectBatchIds(ids);
     }
 }
