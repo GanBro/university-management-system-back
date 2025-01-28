@@ -328,4 +328,30 @@ public class InteractionServiceImpl extends ServiceImpl<InteractionMapper, Inter
 
         return count > 0 ? (double) totalHours / count : 0;
     }
+
+    @Override
+    @Transactional
+    public void deleteReply(Integer replyId) {
+        InteractionReply reply = replyMapper.selectById(replyId);
+        if(reply == null) {
+            throw new RuntimeException("回复不存在");
+        }
+
+        // 删除回复
+        replyMapper.deleteById(replyId);
+
+        // 检查是否还有其他回复
+        LambdaQueryWrapper<InteractionReply> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(InteractionReply::getInteractionId, reply.getInteractionId());
+        long replyCount = replyMapper.selectCount(queryWrapper);
+
+        // 如果没有其他回复了，将互动状态改回pending
+        if(replyCount == 0) {
+            Interaction interaction = new Interaction();
+            interaction.setId(reply.getInteractionId());
+            interaction.setStatus("pending");
+            interaction.setUpdatedAt(LocalDateTime.now());
+            interactionMapper.updateById(interaction);
+        }
+    }
 }

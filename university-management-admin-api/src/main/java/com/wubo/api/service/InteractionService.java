@@ -17,4 +17,5 @@ public interface InteractionService extends IService<Interaction> {
     void reopenInteraction(Integer id);
     void deleteInteraction(Integer id);
     Map<String, Object> getInteractionStats(Integer universityId);
+    void deleteReply(Integer replyId);
 }
