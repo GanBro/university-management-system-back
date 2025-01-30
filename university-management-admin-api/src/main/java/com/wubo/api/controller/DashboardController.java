@@ -50,4 +50,16 @@ public class DashboardController {
             return Result.error("获取高校数量增长趋势失败，请稍后重试！");
         }
     }
+    @Operation(summary = "获取活跃度统计数据")
+    @GetMapping("/activity-stats")
+    public Result<Map<String, Object>> getActivityStats() {
+        try {
+            Map<String, Object> activityStats = dashboardService.getActivityStats();
+            log.info("获取活跃度统计数据成功");
+            return Result.success(activityStats);
+        } catch (Exception e) {
+            log.error("获取活跃度统计数据失败", e);
+            return Result.error("获取活跃度统计数据失败");
+        }
+    }
 }
