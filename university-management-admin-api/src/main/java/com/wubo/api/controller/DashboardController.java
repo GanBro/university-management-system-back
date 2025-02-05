@@ -22,23 +22,20 @@ public class DashboardController {
     @Resource
     private DashboardService dashboardService;
 
-    /**
-     * 获取仪表盘统计数据
-     */
-    @Operation(summary = "获取仪表盘统计数据", description = "获取仪表盘上的统计数据，包括高校总数、活跃用户数量等")
+    @Operation(summary = "获取仪表盘统计数据")
     @GetMapping("/stats")
     public Result<Map<String, Object>> getStats() {
-        Map<String, Object> stats = dashboardService.getStats();
-        log.info("获取仪表盘统计数据成功: {}", stats);
-        return Result.success(stats);
+        try {
+            Map<String, Object> stats = dashboardService.getStats();
+            log.info("获取仪表盘统计数据成功");
+            return Result.success(stats);
+        } catch (Exception e) {
+            log.error("获取仪表盘统计数据失败", e);
+            return Result.error("获取统计数据失败，请稍后重试");
+        }
     }
 
-    /**
-     * 获取高校数量增长趋势
-     *
-     * @return 包含年份和高校数量的列表
-     */
-    @Operation(summary = "获取高校数量增长趋势", description = "获取每年的高校数量增长情况")
+    @Operation(summary = "获取高校数量增长趋势")
     @GetMapping("/growth-trend")
     public Result<List<Map<String, Object>>> getGrowthTrend() {
         try {
@@ -47,19 +44,7 @@ public class DashboardController {
             return Result.success(growthTrend);
         } catch (Exception e) {
             log.error("获取高校数量增长趋势失败", e);
-            return Result.error("获取高校数量增长趋势失败，请稍后重试！");
-        }
-    }
-    @Operation(summary = "获取活跃度统计数据")
-    @GetMapping("/activity-stats")
-    public Result<Map<String, Object>> getActivityStats() {
-        try {
-            Map<String, Object> activityStats = dashboardService.getActivityStats();
-            log.info("获取活跃度统计数据成功");
-            return Result.success(activityStats);
-        } catch (Exception e) {
-            log.error("获取活跃度统计数据失败", e);
-            return Result.error("获取活跃度统计数据失败");
+            return Result.error("获取增长趋势失败，请稍后重试");
         }
     }
 }
