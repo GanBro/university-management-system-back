@@ -8,11 +8,14 @@ import jakarta.annotation.Resource;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,91 +42,202 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     @Cacheable(value = "dashboardStats", unless = "#result == null")
-    public Map<String, Object> getStats() {
+    public Map<String, Object> getStats(String startDate, String endDate) {
         Map<String, Object> stats = new HashMap<>();
-        stats.putAll(getUniversityStats());
-        stats.putAll(getUserStats());
-        stats.putAll(getInteractionStats());
+        stats.putAll(getUniversityStats(startDate, endDate));
+        stats.putAll(getUserStats(startDate, endDate));
+        stats.putAll(getInteractionStats(startDate, endDate));
         return stats;
     }
 
     @Override
-    public List<Map<String, Object>> getUniversityGrowthTrend() {
+    public List<Map<String, Object>> getUniversityGrowthTrend(String startDate, String endDate) {
+        // 如果没有提供日期范围，使用默认范围（最近一年）
+        if (!StringUtils.hasText(startDate) || !StringUtils.hasText(endDate)) {
+            YearMonth now = YearMonth.now();
+            endDate = now.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            startDate = now.minusMonths(11).format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        }
+
+        // 解析日期范围
+        YearMonth start = YearMonth.parse(startDate);
+        YearMonth end = YearMonth.parse(endDate);
+
+        // 构建查询
         QueryWrapper<University> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("YEAR(created_at) as year", "COUNT(*) as university_count")
-                .groupBy("YEAR(created_at)")
-                .orderByAsc("YEAR(created_at)");
-        return universityMapper.selectMaps(queryWrapper);
+        queryWrapper.select(
+            "DATE_FORMAT(created_at, '%Y-%m') as date",
+            "COUNT(*) as value"
+        );
+        
+        // 添加日期范围条件
+        queryWrapper.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate)
+                   .le("DATE_FORMAT(created_at, '%Y-%m')", endDate)
+                   .groupBy("DATE_FORMAT(created_at, '%Y-%m')")
+                   .orderByAsc("DATE_FORMAT(created_at, '%Y-%m')");
+                
+        List<Map<String, Object>> result = universityMapper.selectMaps(queryWrapper);
+        
+        // 创建数据映射，用于快速查找已有数据
+        Map<String, Long> dataMap = result.stream()
+            .collect(Collectors.toMap(
+                m -> (String) m.get("date"),
+                m -> ((Number) m.get("value")).longValue(),
+                (v1, v2) -> v2
+            ));
+        
+        // 填充所有月份的数据
+        List<Map<String, Object>> filledResult = new ArrayList<>();
+        YearMonth current = start;
+        
+        // 计算累计值
+        long cumulativeValue = 0;
+        
+        while (!current.isAfter(end)) {
+            String monthStr = current.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            Map<String, Object> monthData = new HashMap<>();
+            monthData.put("date", monthStr);
+            
+            // 获取当月新增数量
+            long monthlyValue = dataMap.getOrDefault(monthStr, 0L);
+            cumulativeValue += monthlyValue;
+            
+            // 存储累计值
+            monthData.put("value", cumulativeValue);
+            filledResult.add(monthData);
+            
+            current = current.plusMonths(1);
+        }
+        
+        return filledResult;
     }
 
-    private Map<String, Object> getUniversityStats() {
+    private Map<String, Object> getUniversityStats(String startDate, String endDate) {
         Map<String, Object> stats = new HashMap<>();
 
-        stats.put("totalUniversityCount", universityMapper.selectCount(null));
+        // 获取总数
+        QueryWrapper<University> totalQuery = new QueryWrapper<>();
+        if (StringUtils.hasText(startDate)) {
+            totalQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            totalQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
+        stats.put("totalUniversityCount", universityMapper.selectCount(totalQuery));
 
+        // 获取最近新增数
         QueryWrapper<University> recentQuery = new QueryWrapper<>();
+        if (StringUtils.hasText(endDate)) {
+            recentQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
         recentQuery.ge("created_at", getLast30Days());
         stats.put("recentUniversityCount", universityMapper.selectCount(recentQuery));
 
-        stats.put("universityDistribution",
-                universityMapper.selectUniversityDistribution());
+        // 获取地理分布
+        stats.put("universityDistribution", universityMapper.selectUniversityDistribution());
 
         return stats;
     }
 
-    private Map<String, Object> getUserStats() {
+    private Map<String, Object> getUserStats(String startDate, String endDate) {
         Map<String, Object> stats = new HashMap<>();
 
         QueryWrapper<User> weeklyQuery = new QueryWrapper<>();
         weeklyQuery.ge("last_login", getLast7Days());
+        if (StringUtils.hasText(startDate)) {
+            weeklyQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            weeklyQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
         stats.put("activeUserCount", userMapper.selectCount(weeklyQuery));
 
         QueryWrapper<User> monthlyQuery = new QueryWrapper<>();
         monthlyQuery.ge("last_login", getLast30Days());
+        if (StringUtils.hasText(startDate)) {
+            monthlyQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            monthlyQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
         stats.put("monthlyActiveUserCount", userMapper.selectCount(monthlyQuery));
 
         return stats;
     }
 
-    private Map<String, Object> getInteractionStats() {
+    private Map<String, Object> getInteractionStats(String startDate, String endDate) {
         Map<String, Object> stats = new HashMap<>();
 
-        // 计算互动总数（仅包括咨询记录）
-        long totalInteractions = interactionMapper.selectCount(null);
+        // 计算互动总数
+        QueryWrapper<Interaction> totalQuery = new QueryWrapper<>();
+        if (StringUtils.hasText(startDate)) {
+            totalQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            totalQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
+        long totalInteractions = interactionMapper.selectCount(totalQuery);
         stats.put("totalInteractionCount", totalInteractions);
 
         // 统计待处理的咨询数量
         QueryWrapper<Interaction> pendingQuery = new QueryWrapper<>();
         pendingQuery.eq("status", "pending");
+        if (StringUtils.hasText(startDate)) {
+            pendingQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            pendingQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
         long pendingCount = interactionMapper.selectCount(pendingQuery);
         stats.put("pendingInteractionCount", pendingCount);
 
         // 计算用户行为统计
         Map<String, Object> behaviorStats = new HashMap<>();
         behaviorStats.put("consultationCount", totalInteractions);
+        
         // 获取回复数量
-        long replyCount = replyMapper.selectCount(null);
+        QueryWrapper<InteractionReply> replyQuery = new QueryWrapper<>();
+        if (StringUtils.hasText(startDate)) {
+            replyQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            replyQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
+        long replyCount = replyMapper.selectCount(replyQuery);
         behaviorStats.put("replyCount", replyCount);
+        
         // 获取关注数量
-        long followCount = followMapper.selectCount(null);
+        QueryWrapper<UserUniversityFollow> followQuery = new QueryWrapper<>();
+        if (StringUtils.hasText(startDate)) {
+            followQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            followQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
+        long followCount = followMapper.selectCount(followQuery);
         behaviorStats.put("followCount", followCount);
+        
         stats.put("userBehaviorStats", behaviorStats);
 
-        // 计算平均响应时间
-        stats.put("avgResponseTime", calculateAverageResponseTime());
-
-        // 计算响应率
-        stats.put("responseRate", calculateResponseRate());
+        // 计算平均响应时间和响应率
+        stats.put("avgResponseTime", calculateAverageResponseTime(startDate, endDate));
+        stats.put("responseRate", calculateResponseRate(startDate, endDate));
 
         // 获取活跃用户排行
-        stats.put("activeUserRanking", getActiveUserRanking());
+        stats.put("activeUserRanking", getActiveUserRanking(startDate, endDate));
 
         return stats;
     }
 
-    private Double calculateAverageResponseTime() {
+    private Double calculateAverageResponseTime(String startDate, String endDate) {
         QueryWrapper<Interaction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("status", "replied");
+        if (StringUtils.hasText(startDate)) {
+            queryWrapper.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            queryWrapper.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
         List<Interaction> repliedInteractions = interactionMapper.selectList(queryWrapper);
 
         if (repliedInteractions.isEmpty()) {
@@ -141,7 +255,6 @@ public class DashboardServiceImpl implements DashboardService {
 
             InteractionReply firstReply = replyMapper.selectOne(replyQuery);
             if (firstReply != null) {
-                // 添加 ZoneOffset.systemDefault() 来将 LocalDateTime 转换为 Instant
                 long diffInMinutes = ChronoUnit.MINUTES.between(
                         interaction.getCreatedAt().atZone(ZoneOffset.systemDefault()).toInstant(),
                         firstReply.getCreatedAt().atZone(ZoneOffset.systemDefault()).toInstant()
@@ -154,23 +267,43 @@ public class DashboardServiceImpl implements DashboardService {
         return count > 0 ? totalMinutes / count : 0.0;
     }
 
-    private Double calculateResponseRate() {
-        long totalCount = interactionMapper.selectCount(null);
+    private Double calculateResponseRate(String startDate, String endDate) {
+        QueryWrapper<Interaction> totalQuery = new QueryWrapper<>();
+        if (StringUtils.hasText(startDate)) {
+            totalQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            totalQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
+        long totalCount = interactionMapper.selectCount(totalQuery);
+        
         if (totalCount == 0) {
             return 0.0;
         }
 
         QueryWrapper<Interaction> respondedQuery = new QueryWrapper<>();
         respondedQuery.eq("status", "replied");
+        if (StringUtils.hasText(startDate)) {
+            respondedQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            respondedQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
         long respondedCount = interactionMapper.selectCount(respondedQuery);
 
         return (respondedCount * 100.0) / totalCount;
     }
 
-    private List<Map<String, Object>> getActiveUserRanking() {
+    private List<Map<String, Object>> getActiveUserRanking(String startDate, String endDate) {
         QueryWrapper<User> userQuery = new QueryWrapper<>();
-        userQuery.ge("last_login", getLast30Days())
-                .orderByDesc("last_login")
+        userQuery.ge("last_login", getLast30Days());
+        if (StringUtils.hasText(startDate)) {
+            userQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            userQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
+        userQuery.orderByDesc("last_login")
                 .last("LIMIT 10");
 
         return userMapper.selectList(userQuery).stream()
@@ -178,13 +311,13 @@ public class DashboardServiceImpl implements DashboardService {
                     Map<String, Object> ranking = new HashMap<>();
                     ranking.put("userId", user.getUserId());
                     ranking.put("userName", user.getUsername());
-                    ranking.put("actionCount", getUserActionCount(user.getUserId()));
+                    ranking.put("actionCount", getUserActionCount(user.getUserId(), startDate, endDate));
                     return ranking;
                 })
                 .collect(Collectors.toList());
     }
 
-    private long getUserActionCount(Integer userId) {
+    private long getUserActionCount(Integer userId, String startDate, String endDate) {
         QueryWrapper<Interaction> interactionQuery = new QueryWrapper<>();
         QueryWrapper<InteractionReply> replyQuery = new QueryWrapper<>();
         QueryWrapper<UserUniversityFollow> followQuery = new QueryWrapper<>();
@@ -192,6 +325,17 @@ public class DashboardServiceImpl implements DashboardService {
         interactionQuery.eq("user_id", userId);
         replyQuery.eq("user_id", userId);
         followQuery.eq("user_id", userId);
+
+        if (StringUtils.hasText(startDate)) {
+            interactionQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+            replyQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+            followQuery.ge("DATE_FORMAT(created_at, '%Y-%m')", startDate);
+        }
+        if (StringUtils.hasText(endDate)) {
+            interactionQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+            replyQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+            followQuery.le("DATE_FORMAT(created_at, '%Y-%m')", endDate);
+        }
 
         return interactionMapper.selectCount(interactionQuery) +
                 replyMapper.selectCount(replyQuery) +
