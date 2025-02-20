@@ -13,7 +13,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 
-public interface UniversityService {
+public interface UniversityService extends IService<University> {
 
     Page<University> getUniversityList(Integer page, Integer limit, Map<String, Object> params);
 

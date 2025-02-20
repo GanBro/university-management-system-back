@@ -3,6 +3,7 @@ package com.wubo.api.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wubo.api.dto.ConsultationDTO;
 import com.wubo.api.dto.UniversityDTO;
 import com.wubo.api.dto.UniversityDetailDTO;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class UniversityServiceImpl implements UniversityService {
+public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, University> implements UniversityService {
 
     @Autowired
     private UniversityMapper universityMapper;
