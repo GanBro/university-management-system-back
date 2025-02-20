@@ -27,34 +27,57 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     public Page<News> getNewsList(Integer page, Integer limit, Map<String, Object> params) {
-        if (params == null) {
-            params = new HashMap<>(); // 初始化 params
-        }
-
         Page<News> pageParam = new Page<>(page, limit);
         LambdaQueryWrapper<News> queryWrapper = new LambdaQueryWrapper<>();
 
-        String type = (String) params.get("type");
-        String keyword = (String) params.get("keyword");
-        Integer status = (Integer) params.get("status");
-        Integer universityId = (Integer) params.get("universityId");  // 新增参数
+        // 处理查询参数
+        if (params != null) {
+            // 处理新闻类型
+            Object typeObj = params.get("type");
+            if (typeObj != null && StringUtils.hasText(typeObj.toString())) {
+                queryWrapper.eq(News::getType, typeObj.toString());
+            }
 
-        if (StringUtils.hasText(type)) {
-            queryWrapper.eq(News::getType, type);
-        }
-        if (StringUtils.hasText(keyword)) {
-            queryWrapper.like(News::getTitle, keyword)
+            // 处理状态
+            Object statusObj = params.get("status");
+            if (statusObj != null) {
+                Integer status;
+                if (statusObj instanceof Integer) {
+                    status = (Integer) statusObj;
+                } else {
+                    status = Integer.parseInt(statusObj.toString());
+                }
+                queryWrapper.eq(News::getStatus, status);
+            }
+
+            // 处理大学ID
+            Object universityIdObj = params.get("universityId");
+            if (universityIdObj != null) {
+                Integer universityId;
+                if (universityIdObj instanceof Integer) {
+                    universityId = (Integer) universityIdObj;
+                } else {
+                    universityId = Integer.parseInt(universityIdObj.toString());
+                }
+                queryWrapper.eq(News::getUniversityId, universityId);
+            }
+
+            // 处理关键词搜索
+            Object keywordObj = params.get("keyword");
+            if (keywordObj != null && StringUtils.hasText(keywordObj.toString())) {
+                String keyword = keywordObj.toString();
+                queryWrapper.and(wrapper -> wrapper
+                    .like(News::getTitle, keyword)
                     .or()
-                    .like(News::getContent, keyword);
-        }
-        if (status != null) {
-            queryWrapper.eq(News::getStatus, status);
-        }
-        if (universityId != null) {
-            queryWrapper.eq(News::getUniversityId, universityId);
+                    .like(News::getContent, keyword)
+                );
+            }
         }
 
+        // 默认按发布时间和ID倒序排序
         queryWrapper.orderByDesc(News::getPublishTime, News::getId);
+        
+        // 执行查询
         Page<News> newsPage = newsMapper.selectPage(pageParam, queryWrapper);
 
         // 填充大学信息
