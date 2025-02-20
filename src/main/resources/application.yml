@@ -19,10 +19,12 @@ file:
     # 分类存储
     logo-path: ${file.upload.path}logos\\
     avatar-path: ${file.upload.path}avatars\\
+    news-path: ${file.upload.path}news\\
     # 访问URL前缀
     url-prefix: /files/
     logo-url-prefix: ${file.upload.url-prefix}logos/
     avatar-url-prefix: ${file.upload.url-prefix}avatars/
+    news-url-prefix: ${file.upload.url-prefix}news/
 
 mybatis-plus:
   type-handlers-package: com.wubo.api.enums
