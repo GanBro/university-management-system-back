@@ -29,6 +29,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
 
     @Override
     public void deleteNotification(Integer id) {
+        // 使用逻辑删除
         this.removeById(id);
     }
 }

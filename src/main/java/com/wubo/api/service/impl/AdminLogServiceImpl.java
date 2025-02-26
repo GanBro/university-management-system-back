@@ -32,7 +32,7 @@ public class AdminLogServiceImpl extends ServiceImpl<AdminLogMapper, AdminLog> i
         AdminLog adminLog = new AdminLog();
         adminLog.setAdminId(adminId);
         adminLog.setAction(action);
-        adminLog.setActionTime(LocalDateTime.now().toString());
+        adminLog.setActionTime(LocalDateTime.now());
 
         try {
             save(adminLog);
@@ -50,8 +50,8 @@ public class AdminLogServiceImpl extends ServiceImpl<AdminLogMapper, AdminLog> i
 
         // 构建查询条件
         LambdaQueryWrapper<AdminLog> wrapper = new LambdaQueryWrapper<AdminLog>()
-                .ge(startTime != null, AdminLog::getActionTime, startTime)
-                .le(endTime != null, AdminLog::getActionTime, endTime)
+                .ge(startTime != null, AdminLog::getActionTime, LocalDateTime.parse(startTime))
+                .le(endTime != null, AdminLog::getActionTime, LocalDateTime.parse(endTime))
                 .orderByDesc(AdminLog::getActionTime);
 
         // 执行分页查询
@@ -87,8 +87,8 @@ public class AdminLogServiceImpl extends ServiceImpl<AdminLogMapper, AdminLog> i
     public List<Map<String, Object>> getAdminActionStats(String startTime, String endTime) {
         // 构建查询条件
         LambdaQueryWrapper<AdminLog> wrapper = new LambdaQueryWrapper<AdminLog>()
-                .ge(startTime != null, AdminLog::getActionTime, startTime)
-                .le(endTime != null, AdminLog::getActionTime, endTime);
+                .ge(startTime != null, AdminLog::getActionTime, LocalDateTime.parse(startTime))
+                .le(endTime != null, AdminLog::getActionTime, LocalDateTime.parse(endTime));
 
         // 查询所有记录
         List<AdminLog> logs = list(wrapper);
@@ -122,7 +122,7 @@ public class AdminLogServiceImpl extends ServiceImpl<AdminLogMapper, AdminLog> i
         LambdaQueryWrapper<AdminLog> wrapper = new LambdaQueryWrapper<AdminLog>()
                 .eq(AdminLog::getAdminId, adminId)
                 .orderByDesc(AdminLog::getActionTime)
-                .last("LIMIT " + limit);  // 使用 last 添加 LIMIT 子句
+                .last("LIMIT " + limit);
 
         // 执行查询
         List<AdminLog> logs = list(wrapper);

@@ -1,22 +1,43 @@
 // Notification.java
 package com.wubo.api.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @TableName("notification")
+@Schema(description = "通知实体")
 public class Notification {
     @TableId(type = IdType.AUTO)
     private Integer id;
+
+    @Schema(description = "通知标题")
     private String title;
+
+    @Schema(description = "通知内容")
     private String content;
+
+    @Schema(description = "通知类型：system-系统通知，announcement-公告")
     private String type;
+
+    @Schema(description = "通知状态：draft-草稿，published-已发布，archived-已归档")
     private String status;
-    private Date createdAt;
-    private Date updatedAt;
+
+    @Schema(description = "创建时间")
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createdAt;
+
+    @Schema(description = "更新时间")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedAt;
+
+    @Schema(description = "创建者ID")
+    private Integer createdBy;
+
+    @Schema(description = "是否删除")
+    @TableLogic(value = "0", delval = "1")
+    private Boolean isDeleted;
 }

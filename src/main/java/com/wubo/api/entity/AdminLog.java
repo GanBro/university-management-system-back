@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,5 +19,5 @@ public class AdminLog {
 
     private Integer adminId; // 外键，指向管理员
     private String action; // 操作内容
-    private String actionTime; // 操作时间
+    private LocalDateTime actionTime; // 操作时间
 }
