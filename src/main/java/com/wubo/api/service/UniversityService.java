@@ -51,4 +51,11 @@ public interface UniversityService extends IService<University> {
     void submitConsultation(Integer universityId, ConsultationDTO consultationDTO);
 
     List<Map<String, Object>> searchUniversities(String keyword, int limit);
+    /**
+     * 获取用户关注的高校导出数据
+     * @param userId 用户ID
+     * @param fields 导出的字段列表
+     * @return 导出数据列表
+     */
+    List<UniversityExportDTO> getFollowedUniversitiesExportData(Integer userId, List<String> fields);
 }

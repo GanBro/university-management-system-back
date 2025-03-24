@@ -269,4 +269,47 @@ public class UniversityController {
         List<Map<String, Object>> universities = universityService.searchUniversities(keyword, limit);
         return Result.success(universities);
     }
+
+    /*todo:功能实现失败，需要修改bug*/
+    @Operation(summary = "导出用户关注的高校列表", description = "导出用户关注的高校数据")
+    @GetMapping("/export/followed")
+    public void exportFollowed(
+            HttpServletResponse response,
+            @RequestParam Integer userId,
+            @ModelAttribute UniversityExportQueryDTO queryDTO
+    ) throws IOException {
+        log.info("导出用户关注的高校列表, 用户ID: {}, 字段: {}", userId, queryDTO.getFields());
+
+        try {
+            // 设置响应头
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setCharacterEncoding("utf-8");
+            String fileName = URLEncoder.encode("我关注的高校", "UTF-8").replaceAll("\\+", "%20");
+            response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+            // 解析导出的字段
+            List<String> fieldList = queryDTO.getFields() != null ?
+                    Arrays.asList(queryDTO.getFields().split(",")) :
+                    Collections.emptyList();
+
+            // 获取导出数据
+            List<UniversityExportDTO> exportData = universityService.getFollowedUniversitiesExportData(userId, fieldList);
+
+            log.info("开始导出用户关注的高校数据, 数据量: {}", exportData.size());
+            EasyExcel.write(response.getOutputStream(), UniversityExportDTO.class)
+                    .includeColumnFieldNames(fieldList)
+                    .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                    .sheet("关注的高校")
+                    .doWrite(exportData);
+            log.info("导出用户关注的高校数据完成");
+
+        } catch (Exception e) {
+            log.error("导出用户关注的高校列表失败", e);
+            response.reset();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("utf-8");
+            response.getWriter().println(Result.error("下载文件失败：" + e.getMessage()));
+        }
+    }
 }

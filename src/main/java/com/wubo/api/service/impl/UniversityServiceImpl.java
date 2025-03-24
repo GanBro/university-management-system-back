@@ -8,13 +8,11 @@ import com.wubo.api.dto.ConsultationDTO;
 import com.wubo.api.dto.UniversityDTO;
 import com.wubo.api.dto.UniversityDetailDTO;
 import com.wubo.api.dto.UniversityExportDTO;
-import com.wubo.api.entity.Interaction;
-import com.wubo.api.entity.SatisfactionRating;
-import com.wubo.api.entity.University;
-import com.wubo.api.entity.UniversityFeature;
+import com.wubo.api.entity.*;
 import com.wubo.api.mapper.InteractionMapper;
 import com.wubo.api.mapper.UniversityFeatureMapper;
 import com.wubo.api.mapper.UniversityMapper;
+import com.wubo.api.mapper.UserUniversityFollowMapper;
 import com.wubo.api.service.UniversityService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +39,9 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
 
     @Autowired
     private InteractionMapper interactionMapper;
+
+    @Autowired
+    private UserUniversityFollowMapper userUniversityFollowMapper;
 
     @Override
     public Page<University> getUniversityList(Integer page, Integer limit, Map<String, Object> params) {
@@ -305,5 +307,46 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
                         .orderByAsc("name")
                         .last("LIMIT " + limit)
         );
+    }
+    @Override
+    public List<UniversityExportDTO> getFollowedUniversitiesExportData(Integer userId, List<String> fields) {
+        // 查询用户关注的高校ID列表
+        LambdaQueryWrapper<UserUniversityFollow> followWrapper = new LambdaQueryWrapper<>();
+        followWrapper.eq(UserUniversityFollow::getUserId, userId);
+        List<UserUniversityFollow> follows = userUniversityFollowMapper.selectList(followWrapper);
+
+        if (follows.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 提取高校ID列表
+        List<Integer> universityIds = follows.stream()
+                .map(UserUniversityFollow::getUniversityId)
+                .collect(Collectors.toList());
+
+        // 查询这些高校的详细信息
+        LambdaQueryWrapper<University> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(University::getId, universityIds);
+
+        List<University> universities = universityMapper.selectList(queryWrapper);
+
+        // 转换为导出DTO
+        return universities.stream().map(university -> {
+            UniversityExportDTO exportDTO = new UniversityExportDTO();
+            BeanUtils.copyProperties(university, exportDTO);
+
+            // 获取特性标签并转换为字符串
+            LambdaQueryWrapper<UniversityFeature> featureWrapper = new LambdaQueryWrapper<>();
+            featureWrapper.eq(UniversityFeature::getUniversityId, university.getId());
+            List<String> featureList = universityFeatureMapper.selectList(featureWrapper)
+                    .stream()
+                    .map(UniversityFeature::getFeatureName)
+                    .collect(Collectors.toList());
+
+            // 将特性列表转换为逗号分隔的字符串
+            exportDTO.setFeatures(String.join("、", featureList));
+
+            return exportDTO;
+        }).collect(Collectors.toList());
     }
 }
