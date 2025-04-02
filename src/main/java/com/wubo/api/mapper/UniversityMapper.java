@@ -40,4 +40,11 @@ public interface UniversityMapper extends BaseMapper<University> {
     List<Map<String, Object>> selectRecommendationIndex(@Param("universityId") Integer universityId);
 
     List<Map<String, Object>> selectConsultations(@Param("universityId") Integer universityId);
+
+    /**
+     * 获取招生数据
+     * @param universityId 大学ID
+     * @return 招生数据列表
+     */
+    List<Map<String, Object>> selectAdmissionData(Integer universityId);
 }

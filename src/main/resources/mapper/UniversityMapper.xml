@@ -303,4 +303,20 @@
         WHERE admin_department IS NOT NULL
         ORDER BY admin_department
     </select>
+
+    <!-- 获取招生数据 -->
+    <select id="selectAdmissionData" resultType="map">
+        SELECT
+            id,
+            university_id as universityId,
+            province,
+            year,
+            score_required as scoreRequired,
+            plan_count as planCount,
+            actual_count as actualCount,
+            lowest_rank as lowestRank
+        FROM admission
+        WHERE university_id = #{universityId}
+        ORDER BY province, year DESC
+    </select>
 </mapper>

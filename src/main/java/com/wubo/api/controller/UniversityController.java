@@ -312,4 +312,16 @@ public class UniversityController {
             response.getWriter().println(Result.error("下载文件失败：" + e.getMessage()));
         }
     }
+    @GetMapping("/{id}/admission-data")
+    @Operation(summary = "获取招生数据", description = "获取高校各省份历年招生分数线及录取情况")
+    public Result<List<Map<String, Object>>> getAdmissionData(@PathVariable Integer id) {
+        log.info("获取招生数据, id: {}", id);
+        try {
+            List<Map<String, Object>> admissionData = universityService.getAdmissionData(id);
+            return Result.success(admissionData);
+        } catch (Exception e) {
+            log.error("获取招生数据失败", e);
+            return Result.error("获取招生数据失败: " + e.getMessage());
+        }
+    }
 }

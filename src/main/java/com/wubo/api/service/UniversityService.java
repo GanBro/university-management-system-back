@@ -58,4 +58,6 @@ public interface UniversityService extends IService<University> {
      * @return 导出数据列表
      */
     List<UniversityExportDTO> getFollowedUniversitiesExportData(Integer userId, List<String> fields);
+    // 获取招生数据
+    List<Map<String, Object>> getAdmissionData(Integer universityId);
 }

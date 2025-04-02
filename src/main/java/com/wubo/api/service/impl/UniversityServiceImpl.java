@@ -308,6 +308,7 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
                         .last("LIMIT " + limit)
         );
     }
+
     @Override
     public List<UniversityExportDTO> getFollowedUniversitiesExportData(Integer userId, List<String> fields) {
         // 查询用户关注的高校ID列表
@@ -348,5 +349,11 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
 
             return exportDTO;
         }).collect(Collectors.toList());
+    }
+
+    // 新增方法: 获取招生数据
+    @Override
+    public List<Map<String, Object>> getAdmissionData(Integer universityId) {
+        return universityMapper.selectAdmissionData(universityId);
     }
 }
