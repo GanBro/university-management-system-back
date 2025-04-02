@@ -63,29 +63,33 @@ public class NotificationController {
     // 用户端接口
     @Operation(summary = "获取用户通知列表")
     @GetMapping("/user/notifications")
-    public Result<List<NullLiteral>> getUserNotifications(@RequestParam Integer userId) {
+    public Result<List<Notification>> getUserNotifications(@RequestParam Integer userId) {
         log.info("获取用户通知列表, userId: {}", userId);
-        return null;
+        List<Notification> notifications = notificationService.getUserNotifications(userId);
+        return Result.success(notifications);
     }
 
     @Operation(summary = "标记通知为已读")
     @PutMapping("/user/notifications/{id}/read")
     public Result<?> markAsRead(@PathVariable Integer id, @RequestParam Integer userId) {
         log.info("标记通知为已读, notificationId: {}, userId: {}", id, userId);
-        return null;
+        notificationService.markAsRead(id, userId);
+        return Result.success(null);
     }
 
     @Operation(summary = "标记所有通知为已读")
     @PutMapping("/user/notifications/read-all")
     public Result<?> markAllAsRead(@RequestParam Integer userId) {
         log.info("标记所有通知为已读, userId: {}", userId);
-        return null;
+        notificationService.markAllAsRead(userId);
+        return Result.success(null);
     }
 
     @Operation(summary = "获取未读通知数量")
     @GetMapping("/user/notifications/unread-count")
     public Result<Integer> getUnreadCount(@RequestParam Integer userId) {
         log.info("获取未读通知数量, userId: {}", userId);
-        return null;
+        Integer count = notificationService.getUnreadCount(userId);
+        return Result.success(count);
     }
 }
