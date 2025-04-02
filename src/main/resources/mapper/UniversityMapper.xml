@@ -250,7 +250,7 @@
             rating_count as count
         FROM satisfaction_rating
         WHERE university_id = #{universityId}
-          AND category like '%专业%'
+          AND category NOT IN ('综合评价', '环境', '生活')
         ORDER BY rating DESC
         LIMIT 5
     </select>
