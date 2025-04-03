@@ -2,11 +2,12 @@
 package com.wubo.api.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.wubo.api.entity.Notification;
 
 import java.util.List;
 
-public interface NotificationService {
+public interface NotificationService extends IService<Notification> {
     Page<Notification> getNotificationList(Integer page, Integer limit, String type, String status);
     void createNotification(Notification notification);
     void updateNotification(Notification notification);

@@ -7,10 +7,10 @@ import com.wubo.api.dto.Result;
 import com.wubo.api.entity.Notification;
 import com.wubo.api.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.expression.spel.ast.NullLiteral;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +24,6 @@ public class NotificationController {
     @Autowired
     private NotificationService notificationService;
 
-
     @Operation(summary = "获取通知列表")
     @GetMapping
     public Result<Page<Notification>> list(@ModelAttribute NotificationQueryDTO queryDTO) {
@@ -33,6 +32,17 @@ public class NotificationController {
         Page<Notification> result = notificationService.getNotificationList(
                 queryDTO.getPage(), queryDTO.getLimit(), queryDTO.getType(), queryDTO.getStatus());
         return Result.success(result);
+    }
+
+    @Operation(summary = "获取通知详情")
+    @GetMapping("/{id}")
+    public Result<Notification> detail(@Parameter(description = "通知ID", required = true) @PathVariable Integer id) {
+        log.info("获取通知详情, id: {}", id);
+        Notification notification = notificationService.getById(id);
+        if (notification == null) {
+            return Result.error("通知不存在");
+        }
+        return Result.success(notification);
     }
 
     @Operation(summary = "创建通知")
