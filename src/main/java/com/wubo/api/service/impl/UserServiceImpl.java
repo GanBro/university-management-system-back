@@ -18,9 +18,8 @@ import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -32,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private UserUniversityFollowMapper followMapper;
     @Resource
     private UniversityMapper universityMapper;
+    private Map<String, PasswordResetInfo> passwordResetCodes = new ConcurrentHashMap<>();
 
     @Override
     public User login(User user) {
@@ -298,5 +298,93 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
 
         return universityMapper.selectBatchIds(ids);
+    }
+
+    private static class PasswordResetInfo {
+        private String code;
+        private String email;
+        private LocalDateTime expireTime;
+        private String resetToken;
+
+        public PasswordResetInfo(String code, String email) {
+            this.code = code;
+            this.email = email;
+            this.expireTime = LocalDateTime.now().plusMinutes(15); // 15分钟有效期
+        }
+
+        public boolean isValid(String inputCode, String inputEmail) {
+            return code.equals(inputCode) && email.equals(inputEmail) && LocalDateTime.now().isBefore(expireTime);
+        }
+
+        public String generateResetToken() {
+            resetToken = UUID.randomUUID().toString();
+            expireTime = LocalDateTime.now().plusMinutes(30); // 重置令牌30分钟有效期
+            return resetToken;
+        }
+
+        public boolean isValidResetToken(String token) {
+            return resetToken != null && resetToken.equals(token) && LocalDateTime.now().isBefore(expireTime);
+        }
+    }
+
+    @Override
+    public boolean sendPasswordResetCode(String username, String email) {
+        // 查找用户
+        User user = getUserByUsername(username);
+        if (user == null || !email.equals(user.getEmail())) {
+            return false;
+        }
+
+        // 生成6位数字验证码
+        String code = String.format("%06d", new Random().nextInt(999999));
+
+        // 存储验证码信息
+        passwordResetCodes.put(username, new PasswordResetInfo(code, email));
+
+        // TODO: 在实际应用中，应该通过邮件服务发送验证码
+        // 这里只打印日志模拟发送
+        System.out.println("发送密码重置验证码到 " + email + ": " + code);
+
+        return true;
+    }
+
+    @Override
+    public String verifyPasswordResetCode(String username, String email, String code) {
+        PasswordResetInfo resetInfo = passwordResetCodes.get(username);
+
+        if (resetInfo != null && resetInfo.isValid(code, email)) {
+            // 生成重置令牌
+            return resetInfo.generateResetToken();
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean resetPassword(String username, String resetToken, String newPassword) {
+        PasswordResetInfo resetInfo = passwordResetCodes.get(username);
+
+        if (resetInfo == null || !resetInfo.isValidResetToken(resetToken)) {
+            return false;
+        }
+
+        // 更新用户密码
+        User user = getUserByUsername(username);
+        if (user == null) {
+            return false;
+        }
+
+        user.setPassword(newPassword);
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        int result = userMapper.updateById(user);
+
+        if (result > 0) {
+            // 密码更新成功后，移除重置信息
+            passwordResetCodes.remove(username);
+            return true;
+        }
+
+        return false;
     }
 }

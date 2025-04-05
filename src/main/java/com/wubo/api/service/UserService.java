@@ -70,4 +70,30 @@ public interface UserService {
     void unfollowUniversity(Integer userId, Integer universityId);
 
     List<University> getFollowedUniversities(Integer userId);
+
+    /**
+     * 发送密码重置验证码
+     * @param username 用户名
+     * @param email 邮箱
+     * @return 是否发送成功
+     */
+    boolean sendPasswordResetCode(String username, String email);
+
+    /**
+     * 验证密码重置验证码
+     * @param username 用户名
+     * @param email 邮箱
+     * @param code 验证码
+     * @return 重置令牌，如果验证失败返回null
+     */
+    String verifyPasswordResetCode(String username, String email, String code);
+
+    /**
+     * 重置密码
+     * @param username 用户名
+     * @param resetToken 重置令牌
+     * @param newPassword 新密码
+     * @return 是否重置成功
+     */
+    boolean resetPassword(String username, String resetToken, String newPassword);
 }

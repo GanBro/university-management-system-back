@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -279,6 +280,97 @@ public class UserController {
             return Result.success();
         } catch (Exception e) {
             return Result.error("取消关注失败: " + e.getMessage());
+        }
+    }
+
+    // ===== 忘记密码相关接口 =====
+
+    @Data
+    static class PasswordResetRequest {
+        private String username;
+        private String email;
+    }
+
+    @Data
+    static class VerifyResetCodeRequest {
+        private String username;
+        private String email;
+        private String code;
+    }
+
+    @Data
+    static class ResetPasswordRequest {
+        private String username;
+        private String resetToken;
+        private String newPassword;
+    }
+
+    @Operation(summary = "请求密码重置", description = "通过用户名和邮箱请求密码重置验证码")
+    @PostMapping("/request-password-reset")
+    public Result<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
+        log.info("请求密码重置: {}", request.getUsername());
+        try {
+            boolean sent = userService.sendPasswordResetCode(request.getUsername(), request.getEmail());
+            if (sent) {
+                log.info("密码重置验证码已发送: {}", request.getUsername());
+                return Result.success("验证码已发送到邮箱");
+            } else {
+                log.warn("密码重置验证码发送失败: {}", request.getUsername());
+                return Result.error(400, "用户名或邮箱不正确");
+            }
+        } catch (Exception e) {
+            log.error("请求密码重置异常: {}", request.getUsername(), e);
+            return Result.error(500, "验证码发送失败: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "验证重置码", description = "验证密码重置验证码")
+    @PostMapping("/verify-reset-code")
+    public Result<Map<String, String>> verifyResetCode(@RequestBody VerifyResetCodeRequest request) {
+        log.info("验证密码重置码: {}", request.getUsername());
+        try {
+            String resetToken = userService.verifyPasswordResetCode(
+                    request.getUsername(),
+                    request.getEmail(),
+                    request.getCode()
+            );
+
+            if (resetToken != null) {
+                log.info("密码重置验证成功: {}", request.getUsername());
+                Map<String, String> data = new HashMap<>();
+                data.put("resetToken", resetToken);
+                return Result.success(data);
+            } else {
+                log.warn("密码重置验证失败: {}", request.getUsername());
+                return Result.error(400, "验证码无效或已过期");
+            }
+        } catch (Exception e) {
+            log.error("验证密码重置码异常: {}", request.getUsername(), e);
+            return Result.error(500, "验证失败: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "重置密码", description = "使用验证通过的令牌重置密码")
+    @PostMapping("/reset-password")
+    public Result<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        log.info("重置密码: {}", request.getUsername());
+        try {
+            boolean reset = userService.resetPassword(
+                    request.getUsername(),
+                    request.getResetToken(),
+                    request.getNewPassword()
+            );
+
+            if (reset) {
+                log.info("密码重置成功: {}", request.getUsername());
+                return Result.success("密码重置成功");
+            } else {
+                log.warn("密码重置失败: {}", request.getUsername());
+                return Result.error(400, "重置失败，令牌无效或已过期");
+            }
+        } catch (Exception e) {
+            log.error("重置密码异常: {}", request.getUsername(), e);
+            return Result.error(500, "密码重置失败: " + e.getMessage());
         }
     }
 }
