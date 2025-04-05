@@ -10,18 +10,20 @@ import com.wubo.api.entity.UserUniversityFollow;
 import com.wubo.api.mapper.UniversityMapper;
 import com.wubo.api.mapper.UserMapper;
 import com.wubo.api.mapper.UserUniversityFollowMapper;
+import com.wubo.api.service.EmailService;
 import com.wubo.api.service.UserService;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Transactional
 @Service
 public class UserServiceImpl implements UserService {
@@ -31,6 +33,9 @@ public class UserServiceImpl implements UserService {
     private UserUniversityFollowMapper followMapper;
     @Resource
     private UniversityMapper universityMapper;
+    @Resource
+    private EmailService emailService;
+
     private Map<String, PasswordResetInfo> passwordResetCodes = new ConcurrentHashMap<>();
 
     @Override
@@ -341,11 +346,16 @@ public class UserServiceImpl implements UserService {
         // 存储验证码信息
         passwordResetCodes.put(username, new PasswordResetInfo(code, email));
 
-        // TODO: 在实际应用中，应该通过邮件服务发送验证码
-        // 这里只打印日志模拟发送
-        System.out.println("发送密码重置验证码到 " + email + ": " + code);
+        // 通过邮件服务发送验证码
+        boolean sent = emailService.sendVerificationCode(email, code);
 
-        return true;
+        if (sent) {
+            log.info("密码重置验证码已发送至邮箱: {}, 验证码: {}", email, code);
+        } else {
+            log.error("密码重置验证码发送失败, 邮箱: {}", email);
+        }
+
+        return sent;
     }
 
     @Override
