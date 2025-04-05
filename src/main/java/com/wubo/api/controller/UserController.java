@@ -10,6 +10,8 @@ import com.wubo.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -56,9 +58,8 @@ public class UserController {
         return Result.success(map);
     }
 
-    @Operation(summary = "用户注册接口", description = "通过提交用户名、密码等信息进行注册")
     @PostMapping("/register")
-    public Result<?> register(@RequestBody User user) {
+    public Result<?> register(@RequestBody User user, HttpServletRequest request) {
         log.info("用户注册请求: {}", user.getUsername());
         try {
             boolean isRegistered = userService.register(user);
