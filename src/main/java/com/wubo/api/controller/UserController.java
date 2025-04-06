@@ -195,7 +195,7 @@ public class UserController {
             return Result.error(400, "用户ID不能为空");
         }
         try {
-            User user = userService.getUserById(userId);
+            User user = userService.getUserDetail(userId);
             if (user == null) {
                 log.warn("获取用户详情失败：用户不存在, userId: {}", userId);
                 return Result.error(404, "用户不存在");
@@ -371,6 +371,28 @@ public class UserController {
         } catch (Exception e) {
             log.error("重置密码异常: {}", request.getUsername(), e);
             return Result.error(500, "密码重置失败: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "更新用户信息", description = "更新指定ID用户的信息")
+    @PutMapping("/users/{userId}")
+    public Result<?> updateUser(@PathVariable Integer userId, @RequestBody User user) {
+        log.info("更新用户信息请求, userId: {}", userId);
+        try {
+            // 设置用户ID确保更新正确的用户
+            user.setUserId(userId);
+
+            boolean success = userService.updateUser(user);
+            if (success) {
+                log.info("用户更新成功, userId: {}", userId);
+                return Result.success("用户更新成功");
+            } else {
+                log.warn("用户更新失败, userId: {}", userId);
+                return Result.error(500, "用户更新失败");
+            }
+        } catch (Exception e) {
+            log.error("更新用户信息时发生错误, userId: {}", userId, e);
+            return Result.error(500, "更新用户信息时发生错误: " + e.getMessage());
         }
     }
 }

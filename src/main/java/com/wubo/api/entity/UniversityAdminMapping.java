@@ -8,27 +8,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("user")
-public class User {
-    @TableId(value = "user_id", type = IdType.AUTO)
+@TableName("university_admin_mapping")
+public class UniversityAdminMapping {
+
+    @TableId(type = IdType.AUTO)
+    private Integer id;
+
     private Integer userId;
 
-    private String username;
-    private String password;
-    private String email;
-    private String avatar;
-    private String token;
-    private Timestamp lastLogin;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
-    private String role;
-    @TableField(exist = false)
     private Integer universityId;
+
     @TableField(exist = false)
     private String universityName;
 }

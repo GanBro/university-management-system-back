@@ -3,10 +3,8 @@ package com.wubo.api.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wubo.api.entity.University;
-import com.wubo.api.entity.UpdatePasswordRequest;
-import com.wubo.api.entity.User;
-import com.wubo.api.entity.UserUniversityFollow;
+import com.wubo.api.entity.*;
+import com.wubo.api.mapper.UniversityAdminMappingMapper;
 import com.wubo.api.mapper.UniversityMapper;
 import com.wubo.api.mapper.UserMapper;
 import com.wubo.api.mapper.UserUniversityFollowMapper;
@@ -33,6 +31,8 @@ public class UserServiceImpl implements UserService {
     private UserUniversityFollowMapper followMapper;
     @Resource
     private UniversityMapper universityMapper;
+    @Resource
+    private UniversityAdminMappingMapper universityAdminMappingMapper;
     @Resource
     private EmailService emailService;
 
@@ -103,11 +103,44 @@ public class UserServiceImpl implements UserService {
         }
 
         queryWrapper.orderByDesc("user_id");
-        return userMapper.selectPage(page, queryWrapper);
+
+        // 获取用户列表
+        Page<User> userPage = userMapper.selectPage(page, queryWrapper);
+
+        // 处理高校管理员信息
+        List<User> records = userPage.getRecords();
+        if (records != null && !records.isEmpty()) {
+            for (User user : records) {
+                if ("university_admin".equals(user.getRole())) {
+                    // 获取管理员的高校信息
+                    UniversityAdminMapping mapping = universityAdminMappingMapper.selectWithUniversityName(user.getUserId());
+                    if (mapping != null) {
+                        user.setUniversityId(mapping.getUniversityId());
+                        user.setUniversityName(mapping.getUniversityName());
+                    }
+                }
+            }
+        }
+
+        return userPage;
     }
 
     @Override
     public User getUserDetail(Integer userId) {
+        User user = userMapper.selectById(userId);
+        if (user != null && "university_admin".equals(user.getRole())) {
+            // 查询高校管理员映射关系
+            UniversityAdminMapping mapping = universityAdminMappingMapper.selectWithUniversityName(userId);
+            if (mapping != null) {
+                user.setUniversityId(mapping.getUniversityId());
+                user.setUniversityName(mapping.getUniversityName());
+            }
+        }
+        return user;
+    }
+
+    @Override
+    public User getUserById(Integer userId) {
         return userMapper.selectById(userId);
     }
 
@@ -116,6 +149,12 @@ public class UserServiceImpl implements UserService {
     public boolean updateUser(User user) {
         if (user.getUserId() == null) {
             throw new RuntimeException("用户ID不能为空");
+        }
+
+        // 获取当前用户信息
+        User existingUser = userMapper.selectById(user.getUserId());
+        if (existingUser == null) {
+            throw new RuntimeException("用户不存在");
         }
 
         // 不允许更新用户名
@@ -127,7 +166,25 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-        return userMapper.updateById(user) > 0;
+        int result = userMapper.updateById(user);
+
+        // 处理高校管理员映射关系
+        if (result > 0) {
+            // 首先删除现有的映射关系(无论角色如何)
+            LambdaQueryWrapper<UniversityAdminMapping> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(UniversityAdminMapping::getUserId, user.getUserId());
+            universityAdminMappingMapper.delete(queryWrapper);
+
+            // 如果是高校管理员角色并且提供了大学ID，则创建新的映射关系
+            if ("university_admin".equals(user.getRole()) && user.getUniversityId() != null) {
+                UniversityAdminMapping mapping = new UniversityAdminMapping();
+                mapping.setUserId(user.getUserId());
+                mapping.setUniversityId(user.getUniversityId());
+                universityAdminMappingMapper.insert(mapping);
+            }
+        }
+
+        return result > 0;
     }
 
     @Override
@@ -141,6 +198,13 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectById(id);
         if (user == null) {
             throw new RuntimeException("用户不存在");
+        }
+
+        // 如果是高校管理员，删除映射关系
+        if ("university_admin".equals(user.getRole())) {
+            LambdaQueryWrapper<UniversityAdminMapping> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(UniversityAdminMapping::getUserId, id);
+            universityAdminMappingMapper.delete(queryWrapper);
         }
 
         // 删除用户
@@ -174,6 +238,22 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("部分用户不存在");
         }
 
+        // 查找并删除高校管理员映射关系
+        LambdaQueryWrapper<User> adminUserWrapper = new LambdaQueryWrapper<>();
+        adminUserWrapper.in(User::getUserId, ids)
+                .eq(User::getRole, "university_admin");
+        List<User> adminUsers = userMapper.selectList(adminUserWrapper);
+
+        if (!adminUsers.isEmpty()) {
+            List<Integer> adminUserIds = adminUsers.stream()
+                    .map(User::getUserId)
+                    .collect(Collectors.toList());
+
+            LambdaQueryWrapper<UniversityAdminMapping> mappingWrapper = new LambdaQueryWrapper<>();
+            mappingWrapper.in(UniversityAdminMapping::getUserId, adminUserIds);
+            universityAdminMappingMapper.delete(mappingWrapper);
+        }
+
         // 批量删除用户
         LambdaQueryWrapper<User> deleteWrapper = new LambdaQueryWrapper<>();
         deleteWrapper.in(User::getUserId, ids);
@@ -184,6 +264,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public boolean createUser(User user) {
         try {
             // 设置创建时间和更新时间
@@ -193,6 +274,15 @@ public class UserServiceImpl implements UserService {
 
             // 插入用户记录
             int result = userMapper.insert(user);
+
+            // 如果是高校管理员，创建映射关系
+            if (result > 0 && "university_admin".equals(user.getRole()) && user.getUniversityId() != null) {
+                UniversityAdminMapping mapping = new UniversityAdminMapping();
+                mapping.setUserId(user.getUserId());
+                mapping.setUniversityId(user.getUniversityId());
+                universityAdminMappingMapper.insert(mapping);
+            }
+
             return result > 0;
         } catch (Exception e) {
             throw new RuntimeException("创建用户失败: " + e.getMessage(), e);
@@ -207,11 +297,6 @@ public class UserServiceImpl implements UserService {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", username);
         return userMapper.selectOne(queryWrapper);
-    }
-
-    @Override
-    public User getUserById(Integer userId) {
-        return userMapper.selectById(userId);
     }
 
     @Override

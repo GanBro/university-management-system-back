@@ -30,7 +30,7 @@ public interface UserService {
     Page<User> getUserList(Page<User> page, Map<String, Object> params);
 
     /**
-     * 获取用户详情
+     * 获取用户详情（包含高校管理员信息）
      */
     User getUserDetail(Integer userId);
 
@@ -50,7 +50,7 @@ public interface UserService {
     void batchDeleteUsers(List<Integer> ids);
 
     /**
-     * 创建新用户
+     * 创建新用户（包含高校管理员映射关系）
      */
     boolean createUser(User user);
 
