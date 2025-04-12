@@ -25,10 +25,10 @@ public class NewsController {
 
     @Autowired
     private NewsService newsService;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private UniversityService universityService;
 
@@ -43,7 +43,7 @@ public class NewsController {
         }
         Page<News> newsPage = newsService.getNewsList(
                 queryDTO.getPage(), queryDTO.getLimit(), queryDTO.getParams());
-                
+
         // 填充大学信息
         if (newsPage.getRecords() != null) {
             for (News news : newsPage.getRecords()) {
@@ -52,7 +52,7 @@ public class NewsController {
                 }
             }
         }
-        
+
         return Result.success(newsPage);
     }
 
@@ -85,23 +85,25 @@ public class NewsController {
         if (news == null) {
             return Result.error("参数不能为空");
         }
-        
+
         // 获取当前登录用户
         User currentUser = userService.getUserByToken(token);
         if (currentUser == null) {
             return Result.error("用户未登录");
         }
-        
-        // 设置作者信息
-        news.setAuthor(currentUser.getUsername());
-        
+
+        // 修改为：只在作者为空时设置为当前用户名
+        if (news.getAuthor() == null || news.getAuthor().trim().isEmpty()) {
+            news.setAuthor(currentUser.getUsername());
+        }
+
         // 验证关联的大学是否存在
         if (news.getUniversityId() != null) {
             if (universityService.getById(news.getUniversityId()) == null) {
                 return Result.error("关联的大学不存在");
             }
         }
-        
+
         newsService.createNews(news);
         return Result.success(null);
     }
@@ -110,13 +112,26 @@ public class NewsController {
     @PutMapping("/{id}")
     public Result<?> update(
             @Parameter(description = "信息ID", required = true) @PathVariable Integer id,
-            @RequestBody News news) {
+            @RequestBody News news,
+            @RequestHeader("token") String token) {
         if (id == null || id <= 0) {
             return Result.error("无效的ID");
         }
         if (news == null) {
             return Result.error("参数不能为空");
         }
+
+        // 获取当前登录用户
+        User currentUser = userService.getUserByToken(token);
+        if (currentUser == null) {
+            return Result.error("用户未登录");
+        }
+
+        // 与创建方法保持一致，只在作者为空时设置为当前用户名
+        if (news.getAuthor() == null || news.getAuthor().trim().isEmpty()) {
+            news.setAuthor(currentUser.getUsername());
+        }
+
         news.setId(id);
         newsService.updateNews(news);
         return Result.success(null);

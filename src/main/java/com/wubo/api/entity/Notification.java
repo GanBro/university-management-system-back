@@ -1,4 +1,4 @@
-// Notification.java - 添加额外字段
+// Notification.java
 package com.wubo.api.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
@@ -21,7 +21,7 @@ public class Notification {
     @Schema(description = "通知内容")
     private String content;
 
-    @Schema(description = "通知类型：system-系统通知，user-用户通知，broadcast-广播通知")
+    @Schema(description = "通知类型：user-用户通知，broadcast-广播通知")
     private String type;
 
     @Schema(description = "通知状态：draft-草稿，published-已发布，archived-已归档")
@@ -36,9 +36,6 @@ public class Notification {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
     private LocalDateTime updatedAt;
-
-    @Schema(description = "创建者ID")
-    private Integer createdBy;
 
     @Schema(description = "优先级：0-普通，1-重要，2-紧急")
     private Integer priority;
