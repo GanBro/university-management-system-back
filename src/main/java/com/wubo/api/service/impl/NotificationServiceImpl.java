@@ -68,7 +68,15 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             notification.setTargetType("all");
         }
 
-        // MyBatis-Plus会自动处理createdAt和updatedAt的填充
+        // 如果是系统通知类型，转换为广播通知
+        if ("system".equals(notification.getType())) {
+            notification.setType("broadcast");
+        }
+
+        // 手动设置创建时间和更新时间
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setUpdatedAt(LocalDateTime.now());
+
         this.save(notification);
 
         // 如果状态是已发布，则自动投递通知
@@ -85,10 +93,17 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             throw new RuntimeException("通知不存在");
         }
 
+        // 如果是系统通知类型，转换为广播通知
+        if ("system".equals(notification.getType())) {
+            notification.setType("broadcast");
+        }
+
         // 如果状态从草稿变为已发布，则设置发布时间并自动投递
         boolean shouldPublish = "draft".equals(existingNotification.getStatus())
                 && "published".equals(notification.getStatus());
 
+        // 更新时间
+        notification.setUpdatedAt(LocalDateTime.now());
         this.updateById(notification);
 
         if (shouldPublish) {
@@ -116,9 +131,15 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             return 0;
         }
 
+        // 如果是系统通知类型，转换为广播通知
+        if ("system".equals(notification.getType())) {
+            notification.setType("broadcast");
+        }
+
         // 更新通知状态为已发布
         notification.setStatus("published");
         notification.setPublishTime(LocalDateTime.now());
+        notification.setUpdatedAt(LocalDateTime.now());
         this.updateById(notification);
 
         // 投递通知
@@ -135,6 +156,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
 
         // 更新通知状态为已归档
         notification.setStatus("archived");
+        notification.setUpdatedAt(LocalDateTime.now());
         this.updateById(notification);
 
         return 1;
@@ -218,6 +240,10 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         for (MessageLog log : logs) {
             Notification notification = notificationMap.get(log.getNotificationId());
             if (notification != null) {
+                // 处理系统通知类型，转换显示
+                if ("system".equals(notification.getType())) {
+                    notification.setType("broadcast");
+                }
                 notification.setReadStatus(log.getStatus());
                 orderedResult.add(notification);
             }
@@ -261,8 +287,13 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                         (s1, s2) -> s1 // 如果有重复键，保留第一个
                 ));
 
-        notifications.forEach(notification ->
-                notification.setReadStatus(statusMap.get(notification.getId())));
+        notifications.forEach(notification -> {
+            // 处理系统通知类型，转换显示
+            if ("system".equals(notification.getType())) {
+                notification.setType("broadcast");
+            }
+            notification.setReadStatus(statusMap.get(notification.getId()));
+        });
 
         // 按通知ID在日志中的顺序重新排序
         Map<Integer, Integer> orderMap = new HashMap<>();
@@ -369,6 +400,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         }
 
         notification.setStatus("published");
+        notification.setUpdatedAt(LocalDateTime.now());
         this.updateById(notification);
 
         return 1;
