@@ -4,11 +4,11 @@
 
 <mapper namespace="com.wubo.api.mapper.UniversityMapper">
 
-    <!-- 查询高校详情 -->
-    <select id="selectUniversityDetail" resultMap="UniversityDetailMap">
+    <!-- 优化查询高校详情 - 只查询基本信息，不做JOIN -->
+    <select id="selectUniversityDetail" resultType="com.wubo.api.dto.UniversityDetailDTO">
         SELECT
-            u.id AS university_id,
-            u.name AS university_name,
+            u.id,
+            u.name,
             u.province,
             u.address,
             u.admin_department,
@@ -27,98 +27,58 @@
             u.admission_rules,
             u.scholarships,
             u.accommodation,
-            u.contact_info,
-            a.id AS admission_id,
-            a.university_id AS admission_university_id,
-            a.province AS admission_province,
-            a.year AS admission_year,
-            a.score_required AS admission_score,
-            a.plan_count AS admission_plan_count,
-            a.actual_count AS admission_actual_count,
-            a.lowest_rank AS admission_lowest_rank,
-            s.id AS satisfaction_id,
-            s.university_id AS satisfaction_university_id,
-            s.category AS satisfaction_category,
-            s.rating AS satisfaction_rating,
-            s.rating_count AS satisfaction_count,
-            r.id AS recommendation_id,
-            r.university_id AS recommendation_university_id,
-            r.major_category AS recommendation_major_category,
-            r.rating AS recommendation_rating,
-            r.recommendation_count AS recommendation_count,
-            f.feature_name AS feature_name
+            u.contact_info
         FROM university u
-                 LEFT JOIN admission a ON u.id = a.university_id
-                 LEFT JOIN satisfaction_rating s ON u.id = s.university_id
-                 LEFT JOIN recommendation_rating r ON u.id = r.university_id
-                 LEFT JOIN university_feature f ON u.id = f.university_id
         WHERE u.id = #{id}
     </select>
 
-    <!-- ResultMap 映射 -->
-    <resultMap id="UniversityDetailMap" type="com.wubo.api.dto.UniversityDetailDTO">
-        <!-- 基本信息映射 -->
-        <id property="id" column="university_id"/>
-        <result property="name" column="university_name"/>
-        <result property="province" column="province"/>
-        <result property="address" column="address"/>
-        <result property="adminDepartment" column="admin_department"/>
-        <result property="website" column="website"/>
-        <result property="admissionWebsite" column="admission_website"/>
-        <result property="contactNumber" column="contact_number"/>
-        <result property="type" column="type"/>
-        <result property="level" column="level"/>
-        <!-- 新增学校规模信息映射 -->
-        <result property="studentCount" column="student_count"/>
-        <result property="teacherCount" column="teacher_count"/>
-        <result property="libraryCount" column="library_count"/>
-        <result property="campusArea" column="campus_area"/>
-        <!-- 详细信息映射 -->
-        <result property="introduction" column="introduction"/>
-        <result property="departments" column="departments"/>
-        <result property="majors" column="majors"/>
-        <result property="admissionRules" column="admission_rules"/>
-        <result property="scholarships" column="scholarships"/>
-        <result property="accommodation" column="accommodation"/>
-        <result property="contactInfo" column="contact_info"/>
+    <!-- 单独查询高校特性 -->
+    <select id="selectUniversityFeatures" resultType="string">
+        SELECT feature_name
+        FROM university_feature
+        WHERE university_id = #{universityId}
+    </select>
 
-        <!-- 映射 admissionScores 集合 -->
-        <collection property="admissionScores" ofType="com.wubo.api.entity.Admission">
-            <id property="id" column="admission_id"/>
-            <result property="universityId" column="admission_university_id"/>
-            <result property="province" column="admission_province"/>
-            <result property="year" column="admission_year"/>
-            <result property="scoreRequired" column="admission_score"/>
-            <result property="planCount" column="admission_plan_count"/>
-            <result property="actualCount" column="admission_actual_count"/>
-            <result property="lowestRank" column="admission_lowest_rank"/>
-        </collection>
+    <!-- 单独查询招生数据 -->
+    <select id="selectUniversityAdmissions" resultType="com.wubo.api.entity.Admission">
+        SELECT
+            id,
+            university_id,
+            province,
+            year,
+            score_required,
+            plan_count,
+            actual_count,
+            lowest_rank
+        FROM admission
+        WHERE university_id = #{universityId}
+    </select>
 
-        <!-- 映射 satisfactionRatings 集合 -->
-        <collection property="satisfactionRatings" ofType="com.wubo.api.entity.SatisfactionRating">
-            <id property="id" column="satisfaction_id"/>
-            <result property="universityId" column="satisfaction_university_id"/>
-            <result property="category" column="satisfaction_category"/>
-            <result property="rating" column="satisfaction_rating"/>
-            <result property="ratingCount" column="satisfaction_count"/>
-        </collection>
+    <!-- 单独查询满意度评价 -->
+    <select id="selectUniversitySatisfactionRatings" resultType="com.wubo.api.entity.SatisfactionRating">
+        SELECT
+            id,
+            university_id,
+            category,
+            rating,
+            rating_count
+        FROM satisfaction_rating
+        WHERE university_id = #{universityId}
+    </select>
 
-        <!-- 映射 recommendationRatings 集合 -->
-        <collection property="recommendationRatings" ofType="com.wubo.api.entity.RecommendationRating">
-            <id property="id" column="recommendation_id"/>
-            <result property="universityId" column="recommendation_university_id"/>
-            <result property="majorCategory" column="recommendation_major_category"/>
-            <result property="rating" column="recommendation_rating"/>
-            <result property="recommendationCount" column="recommendation_count"/>
-        </collection>
+    <!-- 单独查询推荐评级 -->
+    <select id="selectUniversityRecommendationRatings" resultType="com.wubo.api.entity.RecommendationRating">
+        SELECT
+            id,
+            university_id,
+            major_category,
+            rating,
+            recommendation_count
+        FROM recommendation_rating
+        WHERE university_id = #{universityId}
+    </select>
 
-        <!-- 映射 features 集合 -->
-        <collection property="features" ofType="java.lang.String">
-            <result column="feature_name"/>
-        </collection>
-    </resultMap>
-
-    <!-- 查询高校数量增长趋势 -->
+    <!-- 查询高校增长趋势 -->
     <select id="selectUniversityGrowthTrend" resultType="map">
         SELECT YEAR(created_at) AS year, COUNT(*) AS university_count
         FROM university
@@ -133,6 +93,7 @@
         GROUP BY province
     </select>
 
+    <!-- 查询高校列表添加索引提示 -->
     <select id="selectUniversityList" resultType="com.wubo.api.entity.University">
         SELECT
         u.id,
@@ -185,6 +146,7 @@
         u.contact_info, u.logo
         ORDER BY u.id DESC
     </select>
+
     <!-- 查询所有高校类型 -->
     <select id="selectAllTypes" resultType="string">
         SELECT DISTINCT type FROM university ORDER BY type
@@ -198,6 +160,14 @@
     <!-- 查询所有高校省份 -->
     <select id="selectAllProvinces" resultType="string">
         SELECT DISTINCT province FROM university ORDER BY province
+    </select>
+
+    <!-- 查询所有主管部门 -->
+    <select id="selectAllAdminDepartments" resultType="string">
+        SELECT DISTINCT admin_department
+        FROM university
+        WHERE admin_department IS NOT NULL
+        ORDER BY admin_department
     </select>
 
     <!-- 查询招生统计信息 -->
@@ -294,14 +264,6 @@
           AND i.is_public = 1
         ORDER BY i.created_at DESC
         LIMIT 10
-    </select>
-
-    <!-- 新增：查询所有主管部门 -->
-    <select id="selectAllAdminDepartments" resultType="string">
-        SELECT DISTINCT admin_department
-        FROM university
-        WHERE admin_department IS NOT NULL
-        ORDER BY admin_department
     </select>
 
     <!-- 获取招生数据 -->

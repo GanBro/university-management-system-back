@@ -16,6 +16,8 @@ import com.wubo.api.mapper.UserUniversityFollowMapper;
 import com.wubo.api.service.UniversityService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -83,23 +85,35 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
     }
 
     @Override
+    @Cacheable(value = "universityDetail", key = "#id", unless = "#result == null")
     public UniversityDetailDTO getUniversityDetail(Integer id) {
+        // 1. 获取基本信息
         UniversityDetailDTO result = universityMapper.selectUniversityDetail(id);
+
         if (result != null) {
-            // 获取特性标签
-            LambdaQueryWrapper<UniversityFeature> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(UniversityFeature::getUniversityId, id);
-            List<String> features = universityFeatureMapper.selectList(wrapper)
-                    .stream()
-                    .map(UniversityFeature::getFeatureName)
-                    .collect(Collectors.toList());
+            // 2. 获取特性标签
+            List<String> features = universityMapper.selectUniversityFeatures(id);
             result.setFeatures(features);
+
+            // 3. 获取招生数据
+            List<Admission> admissions = universityMapper.selectUniversityAdmissions(id);
+            result.setAdmissionScores(admissions);
+
+            // 4. 获取满意度评价
+            List<SatisfactionRating> satisfactionRatings = universityMapper.selectUniversitySatisfactionRatings(id);
+            result.setSatisfactionRatings(satisfactionRatings);
+
+            // 5. 获取推荐评级
+            List<RecommendationRating> recommendationRatings = universityMapper.selectUniversityRecommendationRatings(id);
+            result.setRecommendationRatings(recommendationRatings);
         }
+
         return result;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "universityDetail", key = "#universityDTO.id")
     public void createUniversity(UniversityDTO universityDTO) {
         // 保存基本信息
         University university = new University();
@@ -112,6 +126,7 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
 
     @Override
     @Transactional
+    @CacheEvict(value = "universityDetail", key = "#universityDTO.id")
     public void updateUniversity(UniversityDTO universityDTO) {
         // 更新基本信息
         University university = new University();
@@ -138,12 +153,14 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
 
     @Override
     @Transactional
+    @CacheEvict(value = "universityDetail", key = "#id")
     public void deleteUniversity(Integer id) {
         universityMapper.deleteById(id);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "universityDetail", allEntries = true)
     public void batchDeleteUniversities(List<Integer> ids) {
         // 使用新的批量删除API
         LambdaQueryWrapper<University> queryWrapper = new LambdaQueryWrapper<>();
@@ -179,13 +196,8 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
             UniversityExportDTO exportDTO = new UniversityExportDTO();
             BeanUtils.copyProperties(university, exportDTO);
 
-            // 获取特性标签并转换为字符串
-            LambdaQueryWrapper<UniversityFeature> featureWrapper = new LambdaQueryWrapper<>();
-            featureWrapper.eq(UniversityFeature::getUniversityId, university.getId());
-            List<String> featureList = universityFeatureMapper.selectList(featureWrapper)
-                    .stream()
-                    .map(UniversityFeature::getFeatureName)
-                    .collect(Collectors.toList());
+            // 获取特性标签
+            List<String> featureList = universityMapper.selectUniversityFeatures(university.getId());
 
             // 将特性列表转换为逗号分隔的字符串
             exportDTO.setFeatures(String.join("、", featureList));
@@ -195,16 +207,19 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
     }
 
     @Override
+    @Cacheable(value = "universityOptions", key = "'types'")
     public List<String> getAllTypes() {
         return universityMapper.selectAllTypes();
     }
 
     @Override
+    @Cacheable(value = "universityOptions", key = "'levels'")
     public List<String> getAllLevels() {
         return universityMapper.selectAllLevels();
     }
 
     @Override
+    @Cacheable(value = "universityOptions", key = "'provinces'")
     public List<String> getAllProvinces() {
         return universityMapper.selectAllProvinces();
     }
@@ -215,6 +230,7 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
     }
 
     @Override
+    @Cacheable(value = "satisfactionData", key = "#universityId", unless = "#result == null")
     public Map<String, Object> getSatisfactionData(Integer universityId) {
         List<SatisfactionRating> satisfactionList = universityMapper.selectSatisfactionData(universityId);
         Map<String, Object> result = new HashMap<>();
@@ -259,11 +275,13 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
     }
 
     @Override
+    @Cacheable(value = "majorSatisfaction", key = "#universityId", unless = "#result == null")
     public List<Map<String, Object>> getMajorSatisfaction(Integer universityId) {
         return universityMapper.selectMajorSatisfaction(universityId);
     }
 
     @Override
+    @Cacheable(value = "recommendationData", key = "#universityId", unless = "#result == null")
     public Map<String, Object> getRecommendationData(Integer universityId) {
         Map<String, Object> result = new HashMap<>();
         result.put("counts", universityMapper.selectRecommendationCounts(universityId));
@@ -336,13 +354,8 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
             UniversityExportDTO exportDTO = new UniversityExportDTO();
             BeanUtils.copyProperties(university, exportDTO);
 
-            // 获取特性标签并转换为字符串
-            LambdaQueryWrapper<UniversityFeature> featureWrapper = new LambdaQueryWrapper<>();
-            featureWrapper.eq(UniversityFeature::getUniversityId, university.getId());
-            List<String> featureList = universityFeatureMapper.selectList(featureWrapper)
-                    .stream()
-                    .map(UniversityFeature::getFeatureName)
-                    .collect(Collectors.toList());
+            // 获取特性标签
+            List<String> featureList = universityMapper.selectUniversityFeatures(university.getId());
 
             // 将特性列表转换为逗号分隔的字符串
             exportDTO.setFeatures(String.join("、", featureList));
@@ -351,8 +364,9 @@ public class UniversityServiceImpl extends ServiceImpl<UniversityMapper, Univers
         }).collect(Collectors.toList());
     }
 
-    // 新增方法: 获取招生数据
+    // 获取招生数据
     @Override
+    @Cacheable(value = "admissionData", key = "#universityId", unless = "#result == null")
     public List<Map<String, Object>> getAdmissionData(Integer universityId) {
         return universityMapper.selectAdmissionData(universityId);
     }
