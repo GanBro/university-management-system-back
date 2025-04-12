@@ -208,4 +208,14 @@ public class NotificationController {
         Integer count = notificationService.getUnreadCount(currentUserId);
         return Result.success(count);
     }
+    @Operation(summary = "恢复归档通知")
+    @PostMapping("/{id}/restore")
+    public Result<?> restoreNotification(@PathVariable Integer id) {
+        log.info("恢复归档通知, id: {}", id);
+        int result = notificationService.restoreNotification(id);
+        if (result > 0) {
+            return Result.success("通知已恢复");
+        }
+        return Result.error("通知不存在或恢复失败");
+    }
 }

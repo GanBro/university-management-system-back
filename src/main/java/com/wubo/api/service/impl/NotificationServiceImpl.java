@@ -354,4 +354,23 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
 
         return userIds;
     }
+    @Override
+    @Transactional
+    public int restoreNotification(Integer notificationId) {
+        Notification notification = this.getById(notificationId);
+        if (notification == null) {
+            return 0;
+        }
+
+        // 将状态从已归档改为已发布
+        if (!"archived".equals(notification.getStatus())) {
+            log.warn("只有已归档的通知才能被恢复, 当前状态: {}", notification.getStatus());
+            return 0;
+        }
+
+        notification.setStatus("published");
+        this.updateById(notification);
+
+        return 1;
+    }
 }

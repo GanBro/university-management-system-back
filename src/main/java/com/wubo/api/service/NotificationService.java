@@ -73,4 +73,9 @@ public interface NotificationService extends IService<Notification> {
      * 获取未读通知数量
      */
     Integer getUnreadCount(Integer userId);
+    /**
+     * 恢复归档通知
+     * @return 操作成功的记录数
+     */
+    int restoreNotification(Integer notificationId);
 }
