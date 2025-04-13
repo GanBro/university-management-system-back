@@ -1,6 +1,7 @@
-package com.wubo.api.service;
+package com.wubo.api.service.impl;
 
 import com.wubo.api.mapper.UniversityMapper;
+import com.wubo.api.service.MetadataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.Cacheable;
