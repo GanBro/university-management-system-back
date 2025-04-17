@@ -3,24 +3,25 @@ package com.wubo.api.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@TableName("admission") // 指定数据库表名
+@TableName("admission")
 public class Admission {
-    @TableId(value = "id", type = IdType.AUTO) // 主键，自增
+    @TableId(type = IdType.AUTO)
     private Integer id;
 
-    private Integer universityId; // 外键，指向高校表
-    private String province; // 省份
-    private int year; // 年份
-    private int scoreRequired; // 录取分数线
-    // 新增
+    private Integer universityId;
+
+    private String province;
+
+    private Integer year;
+
+    private Integer scoreRequired;
+
     private Integer planCount;
+
     private Integer actualCount;
+
     private Integer lowestRank;
 }

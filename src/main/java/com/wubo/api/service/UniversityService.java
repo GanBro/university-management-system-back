@@ -6,6 +6,7 @@ import com.wubo.api.dto.ConsultationDTO;
 import com.wubo.api.dto.UniversityDTO;
 import com.wubo.api.dto.UniversityDetailDTO;
 import com.wubo.api.dto.UniversityExportDTO;
+import com.wubo.api.entity.Admission;
 import com.wubo.api.entity.SatisfactionRating;
 import com.wubo.api.entity.University;
 import org.apache.ibatis.annotations.Param;
@@ -146,4 +147,25 @@ public interface UniversityService extends IService<University> {
      * @return 招生数据列表
      */
     List<Map<String, Object>> getAdmissionData(Integer universityId);
+
+    /**
+     * 创建招生数据
+     * @param admission 招生数据
+     * @return 是否创建成功
+     */
+    boolean createAdmissionData(Admission admission);
+
+    /**
+     * 更新招生数据
+     * @param admission 招生数据
+     * @return 是否更新成功
+     */
+    boolean updateAdmissionData(Admission admission);
+
+    /**
+     * 删除招生数据
+     * @param id 招生数据ID
+     * @return 是否删除成功
+     */
+    boolean deleteAdmissionData(Integer id);
 }
